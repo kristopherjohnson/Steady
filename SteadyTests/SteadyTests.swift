@@ -1,10 +1,3 @@
-//
-//  SteadyTests.swift
-//  SteadyTests
-//
-//  Created by Kristopher Johnson on 12/31/23.
-//
-
 import XCTest
 
 final class SteadyTests: XCTestCase {

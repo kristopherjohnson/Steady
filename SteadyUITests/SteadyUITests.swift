@@ -1,10 +1,3 @@
-//
-//  SteadyUITests.swift
-//  SteadyUITests
-//
-//  Created by Kristopher Johnson on 12/31/23.
-//
-
 import XCTest
 
 final class SteadyUITests: XCTestCase {
