@@ -1,6 +1,9 @@
+import AVFoundation
+import Combine
 import SwiftUI
 
-/// Button style similar to borderedProminent, but which allows specifying the background color.
+/// Button style similar to `borderedProminent`, but which allows
+///  specification of the background color.
 struct BigButtonStyle: ButtonStyle {
     var color: Color
     
@@ -21,14 +24,15 @@ struct BigButtonStyle: ButtonStyle {
 }
 
 struct ContentView: View {
-    @State private var isRunning = false
-    @State private var bpm = 120
+    @StateObject private var model = MetronomeModel()
+    
+    #if false
     @State private var timeSignature = "4/4"
     @State private var beats = "All"
     @State private var soundEnabled = true
     @State private var flashEnabled = false
     @State private var accentFirstBeatEnabled = false
-    
+        
     private var timeSignatures = [
         "2/4",
         "3/4",
@@ -43,6 +47,7 @@ struct ContentView: View {
         "Odd beats",
         "Even beats"
     ]
+    #endif
     
     var body: some View {
         NavigationStack {
@@ -53,7 +58,7 @@ struct ContentView: View {
                         
                         Button(action: toggleIsRunning) {
                             HStack {
-                                if isRunning {
+                                if model.isRunning {
                                     Image(systemName: "pause.fill")
                                     Text("Stop")
                                 } else {
@@ -62,7 +67,7 @@ struct ContentView: View {
                                 }
                             }
                         }
-                        .buttonStyle(BigButtonStyle(color: isRunning ? .red : .green))
+                        .buttonStyle(BigButtonStyle(color: model.isRunning ? .red : .green))
                         
                         Spacer()
                     }
@@ -73,7 +78,7 @@ struct ContentView: View {
                     VStack {
                         HStack {
                             Image(systemName: "metronome")
-                            Picker("Beats per minute", selection: $bpm) {
+                            Picker("Beats per minute", selection: $model.beatsPerMinute) {
                                 ForEach(30...300, id: \.self) { n in
                                     Text("\(n) bpm").tag(n)
                                 }
@@ -81,6 +86,7 @@ struct ContentView: View {
                             .accessibilityIdentifier("bpmPicker")
                         }
                         
+                        #if false // Tap tempo not implemented yet
                         Button(action: tapTempo) {
                             HStack {
                                 Image(systemName: "hand.tap")
@@ -91,9 +97,11 @@ struct ContentView: View {
                         .font(.title)
                         .buttonStyle(.borderedProminent)
                         .accessibilityIdentifier("tapTempoButton")
+                        #endif
                     }
                 }
                 
+                #if false // Meter not implmented yet
                 Section("Meter") {
                     HStack {
                         Image(systemName: "lines.measurement.horizontal")
@@ -115,7 +123,9 @@ struct ContentView: View {
                         .accessibilityIdentifier("beatsPicker")
                     }
                 }
+                #endif
                 
+                #if false
                 Section("Options") {
                     HStack {
                         Image(systemName: "speaker.wave.1")
@@ -133,7 +143,9 @@ struct ContentView: View {
                         Image(systemName: "1.circle")
                         Toggle("Accent first beat", isOn: $accentFirstBeatEnabled)
                             .accessibilityIdentifier("accessFirstBeatEnabledToggle")
-                    }                }
+                    }
+                }
+                #endif
             }
             .navigationTitle("Steady")
         }
@@ -141,7 +153,7 @@ struct ContentView: View {
     
     /// Switch between running and not-running state
     func toggleIsRunning() {
-        isRunning = !isRunning
+        model.isRunning = !model.isRunning
     }
     
     /// Set tempo based on interval between button taps

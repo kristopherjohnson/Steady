@@ -14,6 +14,8 @@
 		4EC9176B2B41F11C009A7E54 /* SteadyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC9176A2B41F11C009A7E54 /* SteadyTests.swift */; };
 		4EC917752B41F11C009A7E54 /* SteadyUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC917742B41F11C009A7E54 /* SteadyUITests.swift */; };
 		4EC917772B41F11C009A7E54 /* SteadyUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC917762B41F11C009A7E54 /* SteadyUITestsLaunchTests.swift */; };
+		4EC917842B4230C2009A7E54 /* woodblock.wav in Resources */ = {isa = PBXBuildFile; fileRef = 4EC917832B4230C2009A7E54 /* woodblock.wav */; };
+		4EC917862B4332E5009A7E54 /* MetronomeModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC917852B4332E5009A7E54 /* MetronomeModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -45,6 +47,8 @@
 		4EC917702B41F11C009A7E54 /* SteadyUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SteadyUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4EC917742B41F11C009A7E54 /* SteadyUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SteadyUITests.swift; sourceTree = "<group>"; };
 		4EC917762B41F11C009A7E54 /* SteadyUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SteadyUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		4EC917832B4230C2009A7E54 /* woodblock.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = woodblock.wav; sourceTree = "<group>"; };
+		4EC917852B4332E5009A7E54 /* MetronomeModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetronomeModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -95,11 +99,13 @@
 		4EC917572B41F11B009A7E54 /* Steady */ = {
 			isa = PBXGroup;
 			children = (
-				4EC917582B41F11B009A7E54 /* SteadyApp.swift */,
-				4EC9175A2B41F11B009A7E54 /* ContentView.swift */,
 				4EC9175C2B41F11C009A7E54 /* Assets.xcassets */,
-				4EC9175E2B41F11C009A7E54 /* Steady.entitlements */,
+				4EC9175A2B41F11B009A7E54 /* ContentView.swift */,
+				4EC917852B4332E5009A7E54 /* MetronomeModel.swift */,
 				4EC9175F2B41F11C009A7E54 /* Preview Content */,
+				4EC9175E2B41F11C009A7E54 /* Steady.entitlements */,
+				4EC917582B41F11B009A7E54 /* SteadyApp.swift */,
+				4EC917832B4230C2009A7E54 /* woodblock.wav */,
 			);
 			path = Steady;
 			sourceTree = "<group>";
@@ -233,6 +239,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4EC917842B4230C2009A7E54 /* woodblock.wav in Resources */,
 				4EC917612B41F11C009A7E54 /* Preview Assets.xcassets in Resources */,
 				4EC9175D2B41F11C009A7E54 /* Assets.xcassets in Resources */,
 			);
@@ -260,6 +267,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4EC9175B2B41F11B009A7E54 /* ContentView.swift in Sources */,
+				4EC917862B4332E5009A7E54 /* MetronomeModel.swift in Sources */,
 				4EC917592B41F11B009A7E54 /* SteadyApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
