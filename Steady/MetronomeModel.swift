@@ -5,7 +5,7 @@ import Combine
 /// Implementation of metronome state and operation for use by ContentView.
 class MetronomeModel: ObservableObject {
     
-    /// Set true to enable the metronome's clicks
+    /// Set true to enable the metronome's periodic clicking.
     @Published var isRunning: Bool = false {
         didSet {
             if isRunning {
@@ -38,9 +38,8 @@ class MetronomeModel: ObservableObject {
         stopTimer()
 
         let interval = 60.0 / Double(beatsPerMinute)
-        metronomeTimer = Timer.publish(every: interval, on: .main, in: .common)
+        metronomeTimer = Timer.publish(every: interval, tolerance: 0.01, on: .main, in: .common)
             .autoconnect()
-            .receive(on: DispatchQueue.global(qos: .userInteractive))
             .sink { [weak self] _ in
                 self?.playClickSound()
             }
@@ -52,15 +51,15 @@ class MetronomeModel: ObservableObject {
     }
 
     private func loadClickSound() {
-        guard let url = Bundle.main.url(forResource: "woodblock", withExtension: "wav") else {
-            print("Click sound not found.")
-            return
+        guard let url = Bundle.main.url(forResource: "rimshot", withExtension: "wav") else {
+            fatalError("click sound not found.")
         }
+        
         do {
             audioPlayer = try AVAudioPlayer(contentsOf: url)
             audioPlayer?.prepareToPlay()
         } catch {
-            print("Error loading click sound: \(error)")
+            fatalError("unable to load click sound: \(error)")
         }
     }
 
