@@ -2,11 +2,20 @@ import Foundation
 import AVFoundation
 import Combine
 
+/// Which beats of a measure to play a click on.
+enum BeatsPlayed: String, CaseIterable, Identifiable {
+    case all = "All beats"
+    case odd = "Odd beats"
+    case even = "Even beats"
+    
+    var id: String { self.rawValue }
+}
+
 /// Implementation of metronome state and operation for use by ContentView.
 class MetronomeModel: ObservableObject {
     
     /// Set true to enable the metronome's periodic clicking.
-    @Published var isRunning: Bool = false {
+    @Published var isRunning = false {
         didSet {
             if isRunning {
                 startTimer()
@@ -17,7 +26,7 @@ class MetronomeModel: ObservableObject {
     }
     
     /// Tempo
-    @Published var beatsPerMinute: Int = 120 {
+    @Published var beatsPerMinute = 120 {
         didSet {
             assert(beatsPerMinute >= 1)
             
@@ -26,45 +35,99 @@ class MetronomeModel: ObservableObject {
             }
         }
     }
+    
+    @Published var beatIndex = 0 {
+        didSet {
+            assert(beatIndex >= 0)
+        }
+    }
+    
+    @Published var beatsPerMeasure = 4 {
+        didSet {
+            assert(beatsPerMeasure >= 2)
+        }
+    }
+    
+    @Published var accentFirstBeatEnabled = false
+    @Published var beatsPlayed = BeatsPlayed.all
+    
+    @Published var soundEnabled = true
 
     private var metronomeTimer: AnyCancellable?
-    private var audioPlayer: AVAudioPlayer?
+    
+    private var clickAudioPlayer: AVAudioPlayer?
+    private var accentAudioPlayer: AVAudioPlayer?
 
     init() {
-        loadClickSound()
+        loadSounds()
     }
 
     private func startTimer() {
         stopTimer()
 
+        beatIndex = 1
+        self.playClickSound()
+        
         let interval = 60.0 / Double(beatsPerMinute)
         metronomeTimer = Timer.publish(every: interval, tolerance: 0.01, on: .main, in: .common)
             .autoconnect()
             .sink { [weak self] _ in
-                self?.playClickSound()
+                guard let self else { return }
+                
+                var nextBeatIndex = self.beatIndex + 1
+                if nextBeatIndex > self.beatsPerMeasure {
+                    nextBeatIndex = 1
+                }
+                self.beatIndex = nextBeatIndex
+                
+                self.playClickSound()
             }
     }
 
     private func stopTimer() {
+        beatIndex = 0
         metronomeTimer?.cancel()
         metronomeTimer = nil
     }
 
-    private func loadClickSound() {
-        guard let url = Bundle.main.url(forResource: "rimshot", withExtension: "wav") else {
+    private func loadSounds() {
+        guard let clickUrl = Bundle.main.url(forResource: "click_low", withExtension: "wav") else {
             fatalError("click sound not found.")
         }
         
+        guard let accentUrl = Bundle.main.url(forResource: "click_high", withExtension: "wav") else {
+            fatalError("accent sound not found.")
+        }
+        
         do {
-            audioPlayer = try AVAudioPlayer(contentsOf: url)
-            audioPlayer?.prepareToPlay()
+            clickAudioPlayer = try AVAudioPlayer(contentsOf: clickUrl)
+            clickAudioPlayer?.prepareToPlay()
+            
+            accentAudioPlayer = try AVAudioPlayer(contentsOf: accentUrl)
+            accentAudioPlayer?.prepareToPlay()
         } catch {
             fatalError("unable to load click sound: \(error)")
         }
     }
 
     private func playClickSound() {
-        audioPlayer?.play()
+        if soundEnabled {
+            if accentFirstBeatEnabled && beatIndex == 1 {
+                accentAudioPlayer?.play()
+            } else if shouldPlayClick() {
+                clickAudioPlayer?.play()
+            }
+        }
+    }
+    
+    private func shouldPlayClick() -> Bool {
+        switch beatsPlayed {
+        case .all:
+            return true
+        case .odd:
+            return beatIndex % 2 == 1
+        case .even:
+            return beatIndex % 2 == 0
+        }
     }
 }
-

@@ -27,56 +27,88 @@ struct ContentView: View {
     @StateObject private var model = MetronomeModel()
     
     @State private var lastTapTempoDate = Date.distantPast
-    
+
     #if false
-    @State private var timeSignature = "4/4"
-    @State private var beats = "All"
-    @State private var soundEnabled = true
     @State private var flashEnabled = false
-    @State private var accentFirstBeatEnabled = false
-        
-    private var timeSignatures = [
-        "2/4",
-        "3/4",
-        "4/4",
-        "5/4",
-        "6/4",
-        "7/4",
-    ]
+    #endif
     
     private var beatSelections = [
         "All",
         "Odd beats",
         "Even beats"
     ]
-    #endif
     
     var body: some View {
         NavigationStack {
             List {
-                Section("Metronome") {
-                    HStack {
-                        Spacer()
+                Section {
+                    VStack {
+                        HStack {
+                            Spacer()
+                            
+                            // Start/Stop button
+                            Button(action: toggleIsRunning) {
+                                HStack {
+                                    if model.isRunning {
+                                        Image(systemName: "stop.fill")
+                                        Text("Stop")
+                                    } else {
+                                        Image(systemName: "play.fill")
+                                        Text("Start")
+                                    }
+                                }
+                            }
+                            .buttonStyle(BigButtonStyle(color: model.isRunning ? .red : .green))
+                            .accessibilityIdentifier("startStopButton")
+                            .accessibilityHint("Starts or stops the metronome")
+                            
+                            Spacer()
+                        }
+                        .padding()
                         
-                        Button(action: toggleIsRunning) {
-                            HStack {
-                                if model.isRunning {
-                                    Image(systemName: "pause.fill")
-                                    Text("Stop")
-                                } else {
-                                    Image(systemName: "play.fill")
-                                    Text("Start")
+                        // Beat indicator
+                        VStack {
+                            if model.beatsPerMeasure > 8 {
+                                let mid = (model.beatsPerMeasure + 1) / 2
+                                HStack {
+                                    Spacer()
+                                    ForEach(1...mid, id: \.self) { n in
+                                        Image(systemName: symbolName(beatIndex: n))
+                                            .resizable()
+                                            .frame(width: 30, height: 30)
+                                            .foregroundStyle(.gray)
+                                    }
+                                    Spacer()
+                                }
+                                
+                                HStack {
+                                    Spacer()
+                                    ForEach((mid+1)...model.beatsPerMeasure, id: \.self) { n in
+                                        Image(systemName: symbolName(beatIndex: n))
+                                            .resizable()
+                                            .frame(width: 30, height: 30)
+                                            .foregroundStyle(.gray)
+                                    }
+                                    Spacer()
+                                }
+                            } else {
+                                HStack {
+                                    Spacer()
+                                    ForEach(1...model.beatsPerMeasure, id: \.self) { n in
+                                        Image(systemName: symbolName(beatIndex: n))
+                                            .resizable()
+                                            .frame(width: 30, height: 30)
+                                            .foregroundStyle(.gray)
+                                    }
+                                    Spacer()
                                 }
                             }
                         }
-                        .buttonStyle(BigButtonStyle(color: model.isRunning ? .red : .green))
-                        
-                        Spacer()
                     }
                     .listRowBackground(Color.clear)
                 }
                 
-                Section("Tempo") {
+                Section {
                     VStack {
                         HStack {
                             Image(systemName: "metronome")
@@ -84,46 +116,56 @@ struct ContentView: View {
                                 ForEach(30...300, id: \.self) { n in
                                     Text("\(n) bpm").tag(n)
                                 }
+                                .accessibilityIdentifier("beatsPerMinutePicker")
+                                .accessibilityHint("Selects the tempo")
                             }
-                            .accessibilityIdentifier("bpmPicker")
                         }
                         
+                        // Tap Tempo button
                         Button(action: tapTempo) {
                             HStack {
                                 Image(systemName: "hand.tap")
                                 Text("Tap Tempo")
                             }
-                            .padding()
+                            .padding(4.0)
                         }
                         .font(.title)
                         .buttonStyle(.borderedProminent)
                         .accessibilityIdentifier("tapTempoButton")
+                        .accessibilityHint("Sets tempo from taps")
                     }
                 }
                 
-                #if false // Meter not implmented yet
-                Section("Meter") {
+                Section {
                     HStack {
                         Image(systemName: "lines.measurement.horizontal")
-                        Picker("Time signature", selection: $timeSignature) {
-                            ForEach(timeSignatures, id: \.self) { ts in
-                                Text("\(ts)").tag(ts)
+                        Picker("Beats per measure", selection: $model.beatsPerMeasure) {
+                            ForEach(2...16, id: \.self) { n in
+                                Text("\(n)").tag(n)
                             }
+                            .accessibilityIdentifier("beatsPerMeasurePicker")
+                            .accessibilityHint("Selects the number of beats per measure")
                         }
-                        .accessibilityIdentifier("timeSignaturePicker")
                     }
                     
                     HStack {
-                        Image(systemName: "music.note.list")
-                        Picker("Beats", selection: $beats) {
-                            ForEach(beatSelections, id: \.self) { b in
-                                Text("\(b)").tag(b)
+                        Image(systemName: "1.square")
+                        Toggle("Accent first beat", isOn: $model.accentFirstBeatEnabled)
+                            .accessibilityIdentifier("accessFirstBeatEnabledToggle")
+                            .accessibilityHint("Play a different sound for the first beat of a measure")
+                    }
+                    
+                    HStack {
+                        Image(systemName: "music.quarternote.3")
+                        Picker("Play click on beats", selection: $model.beatsPlayed) {
+                            ForEach(BeatsPlayed.allCases) { bp in
+                                Text("\(bp.rawValue)").tag(bp)
                             }
                         }
                         .accessibilityIdentifier("beatsPicker")
+                        .accessibilityHint("Selects on which beats a click will be played")
                     }
                 }
-                #endif
                 
                 #if false
                 Section("Options") {
@@ -131,18 +173,14 @@ struct ContentView: View {
                         Image(systemName: "speaker.wave.1")
                         Toggle("Sound enabled", isOn: $soundEnabled)
                             .accessibilityIdentifier("soundEnabledToggle")
+                            .accessibilityHint("Enables audio click sounds")
                     }
                     
                     HStack {
                         Image(systemName: "bolt")
                         Toggle("Flash enabled", isOn: $flashEnabled)
                             .accessibilityIdentifier("flashEnabledToggle")
-                    }
-                    
-                    HStack {
-                        Image(systemName: "1.circle")
-                        Toggle("Accent first beat", isOn: $accentFirstBeatEnabled)
-                            .accessibilityIdentifier("accessFirstBeatEnabledToggle")
+                            .accessibilityHint("Enables visual flash for each click")
                     }
                 }
                 #endif
@@ -167,6 +205,16 @@ struct ContentView: View {
         }
         
         lastTapTempoDate = now
+    }
+    
+    /// Return symbol name for given beatIndex.
+    ///
+    /// Returns a filled circle if the index matches
+    /// the model's current beat index
+    func symbolName(beatIndex: Int) -> String {
+        return beatIndex == model.beatIndex
+            ? "\(beatIndex).circle.fill"
+            : "\(beatIndex).circle"
     }
 }
 
