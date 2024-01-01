@@ -26,6 +26,8 @@ struct BigButtonStyle: ButtonStyle {
 struct ContentView: View {
     @StateObject private var model = MetronomeModel()
     
+    @State private var lastTapTempoDate = Date.distantPast
+    
     #if false
     @State private var timeSignature = "4/4"
     @State private var beats = "All"
@@ -86,7 +88,6 @@ struct ContentView: View {
                             .accessibilityIdentifier("bpmPicker")
                         }
                         
-                        #if false // Tap tempo not implemented yet
                         Button(action: tapTempo) {
                             HStack {
                                 Image(systemName: "hand.tap")
@@ -97,7 +98,6 @@ struct ContentView: View {
                         .font(.title)
                         .buttonStyle(.borderedProminent)
                         .accessibilityIdentifier("tapTempoButton")
-                        #endif
                     }
                 }
                 
@@ -152,13 +152,21 @@ struct ContentView: View {
     }
     
     /// Switch between running and not-running state
-    func toggleIsRunning() {
+    private func toggleIsRunning() {
         model.isRunning = !model.isRunning
     }
     
     /// Set tempo based on interval between button taps
-    func tapTempo() {
-        // TODO
+    private func tapTempo() {
+        let now = Date.now
+        
+        let tapInterval = now.timeIntervalSince(lastTapTempoDate)
+        if tapInterval < 2.0 && tapInterval >= 0.2 {
+            let newBeatsPerMinute = 60.0 / tapInterval
+            model.beatsPerMinute = Int(newBeatsPerMinute.rounded())
+        }
+        
+        lastTapTempoDate = now
     }
 }
 
