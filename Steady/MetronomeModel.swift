@@ -77,14 +77,14 @@ class MetronomeModel: ObservableObject {
                 if !self.isRunning {
                     return
                 }
-                
-                self.playClickSound()
 
                 var nextBeatIndex = self.beatIndex + 1
                 if nextBeatIndex > self.beatsPerMeasure {
                     nextBeatIndex = 1
                 }
                 self.beatIndex = nextBeatIndex                
+                
+                self.playClickSound()
             }
     }
 
@@ -116,7 +116,7 @@ class MetronomeModel: ObservableObject {
 
     private func playClickSound() {
         if soundEnabled {
-            if accentFirstBeatEnabled && beatIndex == 1 {
+            if accentFirstBeatEnabled && (beatIndex == 1) {
                 accentAudioPlayer?.play()
             } else if shouldPlayClick() {
                 clickAudioPlayer?.play()
