@@ -32,12 +32,6 @@ struct ContentView: View {
     @State private var flashEnabled = false
     #endif
     
-    private var beatSelections = [
-        "All",
-        "Odd beats",
-        "Even beats"
-    ]
-    
     var body: some View {
         NavigationStack {
             List {
