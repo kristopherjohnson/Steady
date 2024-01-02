@@ -74,13 +74,17 @@ class MetronomeModel: ObservableObject {
             .sink { [weak self] _ in
                 guard let self else { return }
                 
+                if !self.isRunning {
+                    return
+                }
+                
+                self.playClickSound()
+
                 var nextBeatIndex = self.beatIndex + 1
                 if nextBeatIndex > self.beatsPerMeasure {
                     nextBeatIndex = 1
                 }
-                self.beatIndex = nextBeatIndex
-                
-                self.playClickSound()
+                self.beatIndex = nextBeatIndex                
             }
     }
 
