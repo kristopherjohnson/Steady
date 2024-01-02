@@ -104,14 +104,24 @@ struct ContentView: View {
                 
                 Section {
                     VStack {
-                        HStack {
-                            Image(systemName: "metronome")
-                            Picker("Beats per minute", selection: $model.beatsPerMinute) {
-                                ForEach(30...300, id: \.self) { n in
-                                    Text("\(n) bpm").tag(n)
+                        if !model.isRunning {
+                            HStack {
+                                Image(systemName: "metronome")
+                                Picker("Beats per minute", selection: $model.beatsPerMinute) {
+                                    ForEach(30...300, id: \.self) { n in
+                                        Text("\(n) bpm").tag(n)
+                                    }
+                                    .accessibilityIdentifier("beatsPerMinutePicker")
+                                    .accessibilityHint("Selects the tempo")
                                 }
-                                .accessibilityIdentifier("beatsPerMinutePicker")
-                                .accessibilityHint("Selects the tempo")
+                            }
+                        } else {
+                            // When metronome is running, the picker popup menu doesn't function properly because of frequent view updates.  So just show text instead.
+                            HStack {
+                                Spacer()
+                                Image(systemName: "metronome")
+                                Text("Beats per minute: \(model.beatsPerMinute)")
+                                Spacer()
                             }
                         }
                         
