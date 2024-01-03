@@ -37,73 +37,6 @@ struct ContentView: View {
             List {
                 Section {
                     VStack {
-                        HStack {
-                            Spacer()
-                            
-                            // Start/Stop button
-                            Button(action: toggleIsRunning) {
-                                HStack {
-                                    if model.isRunning {
-                                        Image(systemName: "stop.fill")
-                                        Text("Stop")
-                                    } else {
-                                        Image(systemName: "play.fill")
-                                        Text("Start")
-                                    }
-                                }
-                            }
-                            .buttonStyle(BigButtonStyle(color: model.isRunning ? .red : .green))
-                            .accessibilityIdentifier("startStopButton")
-                            .accessibilityHint("Starts or stops the metronome")
-                            
-                            Spacer()
-                        }
-                        .padding()
-                        
-                        // Beat indicator
-                        VStack {
-                            if model.beatsPerMeasure > 8 {
-                                let mid = (model.beatsPerMeasure + 1) / 2
-                                HStack {
-                                    Spacer()
-                                    ForEach(1...mid, id: \.self) { n in
-                                        Image(systemName: symbolName(beatIndex: n))
-                                            .resizable()
-                                            .frame(width: 30, height: 30)
-                                            .foregroundStyle(.gray)
-                                    }
-                                    Spacer()
-                                }
-                                
-                                HStack {
-                                    Spacer()
-                                    ForEach((mid+1)...model.beatsPerMeasure, id: \.self) { n in
-                                        Image(systemName: symbolName(beatIndex: n))
-                                            .resizable()
-                                            .frame(width: 30, height: 30)
-                                            .foregroundStyle(.gray)
-                                    }
-                                    Spacer()
-                                }
-                            } else {
-                                HStack {
-                                    Spacer()
-                                    ForEach(1...model.beatsPerMeasure, id: \.self) { n in
-                                        Image(systemName: symbolName(beatIndex: n))
-                                            .resizable()
-                                            .frame(width: 30, height: 30)
-                                            .foregroundStyle(.gray)
-                                    }
-                                    Spacer()
-                                }
-                            }
-                        }
-                    }
-                    .listRowBackground(Color.clear)
-                }
-                
-                Section {
-                    VStack {
                         if !model.isRunning {
                             HStack {
                                 Image(systemName: "metronome")
@@ -139,6 +72,7 @@ struct ContentView: View {
                         .accessibilityHint("Sets tempo from taps")
                     }
                 }
+                .padding(.bottom)
                 
                 Section {
                     HStack {
@@ -188,6 +122,73 @@ struct ContentView: View {
                     }
                 }
                 #endif
+                
+                Section {
+                    VStack {
+                        // Beat indicator
+                        VStack {
+                            if model.beatsPerMeasure > 8 {
+                                let mid = (model.beatsPerMeasure + 1) / 2
+                                HStack {
+                                    Spacer()
+                                    ForEach(1...mid, id: \.self) { n in
+                                        Image(systemName: symbolName(beatIndex: n))
+                                            .resizable()
+                                            .frame(width: 30, height: 30)
+                                            .foregroundStyle(.gray)
+                                    }
+                                    Spacer()
+                                }
+                                
+                                HStack {
+                                    Spacer()
+                                    ForEach((mid+1)...model.beatsPerMeasure, id: \.self) { n in
+                                        Image(systemName: symbolName(beatIndex: n))
+                                            .resizable()
+                                            .frame(width: 30, height: 30)
+                                            .foregroundStyle(.gray)
+                                    }
+                                    Spacer()
+                                }
+                            } else {
+                                HStack {
+                                    Spacer()
+                                    ForEach(1...model.beatsPerMeasure, id: \.self) { n in
+                                        Image(systemName: symbolName(beatIndex: n))
+                                            .resizable()
+                                            .frame(width: 30, height: 30)
+                                            .foregroundStyle(.gray)
+                                    }
+                                    Spacer()
+                                }
+                            }
+                        }
+                        .padding(.bottom)
+                        
+                        HStack {
+                            Spacer()
+                            
+                            // Start/Stop button
+                            Button(action: toggleIsRunning) {
+                                HStack {
+                                    if model.isRunning {
+                                        Image(systemName: "stop.fill")
+                                        Text("Stop")
+                                    } else {
+                                        Image(systemName: "play.fill")
+                                        Text("Start")
+                                    }
+                                }
+                            }
+                            .buttonStyle(BigButtonStyle(color: model.isRunning ? .red : .green))
+                            .accessibilityIdentifier("startStopButton")
+                            .accessibilityHint("Starts or stops the metronome")
+                            
+                            Spacer()
+                        }
+                    }
+                    .listRowBackground(Color.clear)
+                }
             }
             .navigationTitle("Steady")
         }
