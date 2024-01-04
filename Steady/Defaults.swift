@@ -12,7 +12,7 @@ struct Defaults {
     static let defaults: [String: Any] = [
         beatsPerMinute: 120,
         beatsPerMeasure: 4,
-        accentFirstBeatEnabled: false,
+        accentFirstBeatEnabled: true,
         beatsPlayed: BeatsPlayed.all.rawValue,
         soundEnabled: true
     ]
