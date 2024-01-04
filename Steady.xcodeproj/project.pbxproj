@@ -14,9 +14,11 @@
 		4EC9176B2B41F11C009A7E54 /* SteadyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC9176A2B41F11C009A7E54 /* SteadyTests.swift */; };
 		4EC917752B41F11C009A7E54 /* SteadyUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC917742B41F11C009A7E54 /* SteadyUITests.swift */; };
 		4EC917772B41F11C009A7E54 /* SteadyUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC917762B41F11C009A7E54 /* SteadyUITestsLaunchTests.swift */; };
-		4EC917862B4332E5009A7E54 /* MetronomeModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC917852B4332E5009A7E54 /* MetronomeModel.swift */; };
+		4EC917862B4332E5009A7E54 /* MetronomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC917852B4332E5009A7E54 /* MetronomeViewModel.swift */; };
 		4EC9178C2B435FAC009A7E54 /* click_low.wav in Resources */ = {isa = PBXBuildFile; fileRef = 4EC9178B2B435FAC009A7E54 /* click_low.wav */; };
 		4EC9178E2B435FB5009A7E54 /* click_high.wav in Resources */ = {isa = PBXBuildFile; fileRef = 4EC9178D2B435FB5009A7E54 /* click_high.wav */; };
+		4EC917902B465073009A7E54 /* BigButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC9178F2B465073009A7E54 /* BigButtonStyle.swift */; };
+		4EC917922B4650B6009A7E54 /* BeatsPlayed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC917912B4650B6009A7E54 /* BeatsPlayed.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,9 +50,11 @@
 		4EC917702B41F11C009A7E54 /* SteadyUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SteadyUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		4EC917742B41F11C009A7E54 /* SteadyUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SteadyUITests.swift; sourceTree = "<group>"; };
 		4EC917762B41F11C009A7E54 /* SteadyUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SteadyUITestsLaunchTests.swift; sourceTree = "<group>"; };
-		4EC917852B4332E5009A7E54 /* MetronomeModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetronomeModel.swift; sourceTree = "<group>"; };
+		4EC917852B4332E5009A7E54 /* MetronomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetronomeViewModel.swift; sourceTree = "<group>"; };
 		4EC9178B2B435FAC009A7E54 /* click_low.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = click_low.wav; sourceTree = "<group>"; };
 		4EC9178D2B435FB5009A7E54 /* click_high.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = click_high.wav; sourceTree = "<group>"; };
+		4EC9178F2B465073009A7E54 /* BigButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BigButtonStyle.swift; sourceTree = "<group>"; };
+		4EC917912B4650B6009A7E54 /* BeatsPlayed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeatsPlayed.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -102,10 +106,12 @@
 			isa = PBXGroup;
 			children = (
 				4EC9175C2B41F11C009A7E54 /* Assets.xcassets */,
+				4EC917912B4650B6009A7E54 /* BeatsPlayed.swift */,
+				4EC9178F2B465073009A7E54 /* BigButtonStyle.swift */,
 				4EC9178D2B435FB5009A7E54 /* click_high.wav */,
 				4EC9178B2B435FAC009A7E54 /* click_low.wav */,
 				4EC9175A2B41F11B009A7E54 /* ContentView.swift */,
-				4EC917852B4332E5009A7E54 /* MetronomeModel.swift */,
+				4EC917852B4332E5009A7E54 /* MetronomeViewModel.swift */,
 				4EC9175F2B41F11C009A7E54 /* Preview Content */,
 				4EC9175E2B41F11C009A7E54 /* Steady.entitlements */,
 				4EC917582B41F11B009A7E54 /* SteadyApp.swift */,
@@ -270,8 +276,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4EC917922B4650B6009A7E54 /* BeatsPlayed.swift in Sources */,
 				4EC9175B2B41F11B009A7E54 /* ContentView.swift in Sources */,
-				4EC917862B4332E5009A7E54 /* MetronomeModel.swift in Sources */,
+				4EC917862B4332E5009A7E54 /* MetronomeViewModel.swift in Sources */,
+				4EC917902B465073009A7E54 /* BigButtonStyle.swift in Sources */,
 				4EC917592B41F11B009A7E54 /* SteadyApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

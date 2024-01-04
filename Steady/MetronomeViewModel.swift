@@ -2,17 +2,8 @@ import Foundation
 import AVFoundation
 import Combine
 
-/// Which beats of a measure to play a click on.
-enum BeatsPlayed: String, CaseIterable, Identifiable {
-    case all = "All beats"
-    case odd = "Odd beats"
-    case even = "Even beats"
-    
-    var id: String { self.rawValue }
-}
-
 /// Implementation of metronome state and operation for use by ContentView.
-class MetronomeModel: ObservableObject {
+class MetronomeViewModel: ObservableObject {
     
     /// Set true to enable the metronome's periodic clicking.
     @Published var isRunning = false {

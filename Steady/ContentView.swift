@@ -2,29 +2,8 @@ import AVFoundation
 import Combine
 import SwiftUI
 
-/// Button style similar to `borderedProminent`, but which allows
-///  specification of the background color.
-struct BigButtonStyle: ButtonStyle {
-    var color: Color
-    
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.largeTitle)
-            .frame(minWidth: 210)
-            .padding()
-            .background(configuration.isPressed ? color.opacity(0.7) : color)
-            .foregroundColor(.white)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(color, lineWidth: 2)
-            )
-            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
-    }
-}
-
 struct ContentView: View {
-    @StateObject private var model = MetronomeModel()
+    @StateObject private var model = MetronomeViewModel()
     
     @State private var lastTapTempoDate = Date.distantPast
 
@@ -37,7 +16,6 @@ struct ContentView: View {
             List {
                 Section {
                     VStack {
-                        if !model.isRunning {
                             HStack {
                                 Image(systemName: "metronome")
                                 Picker("Beats per minute", selection: $model.beatsPerMinute) {
@@ -48,15 +26,6 @@ struct ContentView: View {
                                     .accessibilityHint("Selects the tempo")
                                 }
                             }
-                        } else {
-                            // When metronome is running, the picker popup menu doesn't function properly because of frequent view updates.  So just show text instead.
-                            HStack {
-                                Spacer()
-                                Image(systemName: "metronome")
-                                Text("Beats per minute: \(model.beatsPerMinute)")
-                                Spacer()
-                            }
-                        }
                         
                         // Tap Tempo button
                         Button(action: tapTempo) {
