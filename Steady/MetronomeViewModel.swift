@@ -17,9 +17,11 @@ class MetronomeViewModel: ObservableObject {
     }
     
     /// Tempo
-    @Published var beatsPerMinute = 120 {
+    @Published var beatsPerMinute: Int {
         didSet {
             assert(beatsPerMinute >= 1)
+            
+            UserDefaults.standard.setValue(beatsPerMinute, forKey: Defaults.beatsPerMinute)
             
             if isRunning {
                 startTimer()
@@ -33,16 +35,31 @@ class MetronomeViewModel: ObservableObject {
         }
     }
     
-    @Published var beatsPerMeasure = 4 {
+    @Published var beatsPerMeasure: Int {
         didSet {
             assert(beatsPerMeasure >= 2)
+            
+            UserDefaults.standard.setValue(beatsPerMeasure, forKey: Defaults.beatsPerMeasure)
         }
     }
     
-    @Published var accentFirstBeatEnabled = false
-    @Published var beatsPlayed = BeatsPlayed.all
+    @Published var accentFirstBeatEnabled: Bool {
+        didSet {
+            UserDefaults.standard.setValue(accentFirstBeatEnabled, forKey: Defaults.accentFirstBeatEnabled)
+        }
+    }
     
-    @Published var soundEnabled = true
+    @Published var beatsPlayed: BeatsPlayed {
+        didSet {
+            UserDefaults.standard.setValue(beatsPlayed.rawValue, forKey: Defaults.beatsPlayed)
+        }
+    }
+    
+    @Published var soundEnabled: Bool {
+        didSet {
+            UserDefaults.standard.setValue(soundEnabled, forKey: Defaults.soundEnabled)
+        }
+    }
 
     private var metronomeTimer: AnyCancellable?
     
@@ -50,6 +67,13 @@ class MetronomeViewModel: ObservableObject {
     private var accentAudioPlayer: AVAudioPlayer?
 
     init() {
+        let userDefaults = UserDefaults.standard
+        beatsPerMinute = userDefaults.integer(forKey: Defaults.beatsPerMinute)
+        beatsPerMeasure = userDefaults.integer(forKey: Defaults.beatsPerMeasure)
+        accentFirstBeatEnabled = userDefaults.bool(forKey: Defaults.accentFirstBeatEnabled)
+        beatsPlayed = BeatsPlayed(rawValue: Defaults.beatsPlayed) ?? .all
+        soundEnabled = userDefaults.bool(forKey: Defaults.soundEnabled)
+        
         loadSounds()
     }
 

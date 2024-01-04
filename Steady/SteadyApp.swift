@@ -2,6 +2,10 @@ import SwiftUI
 
 @main
 struct SteadyApp: App {
+    init() {
+        Defaults.registerDefaults()
+    }
+    
     var body: some Scene {
         WindowGroup {
             ContentView()

@@ -19,6 +19,7 @@
 		4EC9178E2B435FB5009A7E54 /* click_high.wav in Resources */ = {isa = PBXBuildFile; fileRef = 4EC9178D2B435FB5009A7E54 /* click_high.wav */; };
 		4EC917902B465073009A7E54 /* BigButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC9178F2B465073009A7E54 /* BigButtonStyle.swift */; };
 		4EC917922B4650B6009A7E54 /* BeatsPlayed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC917912B4650B6009A7E54 /* BeatsPlayed.swift */; };
+		4EC917CE2B46D4D2009A7E54 /* Defaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC917CD2B46D4D2009A7E54 /* Defaults.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -55,6 +56,7 @@
 		4EC9178D2B435FB5009A7E54 /* click_high.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = click_high.wav; sourceTree = "<group>"; };
 		4EC9178F2B465073009A7E54 /* BigButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BigButtonStyle.swift; sourceTree = "<group>"; };
 		4EC917912B4650B6009A7E54 /* BeatsPlayed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeatsPlayed.swift; sourceTree = "<group>"; };
+		4EC917CD2B46D4D2009A7E54 /* Defaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Defaults.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -111,6 +113,7 @@
 				4EC9178D2B435FB5009A7E54 /* click_high.wav */,
 				4EC9178B2B435FAC009A7E54 /* click_low.wav */,
 				4EC9175A2B41F11B009A7E54 /* ContentView.swift */,
+				4EC917CD2B46D4D2009A7E54 /* Defaults.swift */,
 				4EC917852B4332E5009A7E54 /* MetronomeViewModel.swift */,
 				4EC9175F2B41F11C009A7E54 /* Preview Content */,
 				4EC9175E2B41F11C009A7E54 /* Steady.entitlements */,
@@ -279,6 +282,7 @@
 				4EC917922B4650B6009A7E54 /* BeatsPlayed.swift in Sources */,
 				4EC9175B2B41F11B009A7E54 /* ContentView.swift in Sources */,
 				4EC917862B4332E5009A7E54 /* MetronomeViewModel.swift in Sources */,
+				4EC917CE2B46D4D2009A7E54 /* Defaults.swift in Sources */,
 				4EC917902B465073009A7E54 /* BigButtonStyle.swift in Sources */,
 				4EC917592B41F11B009A7E54 /* SteadyApp.swift in Sources */,
 			);
