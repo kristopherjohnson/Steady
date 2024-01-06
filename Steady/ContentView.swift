@@ -64,7 +64,7 @@ struct ContentView: View {
                     
                     HStack {
                         Image(systemName: "music.quarternote.3")
-                        Picker("Play click on beats", selection: $model.beatsPlayed) {
+                        Picker("Play click on", selection: $model.beatsPlayed) {
                             ForEach(BeatsPlayed.allCases) { bp in
                                 Text("\(bp.rawValue)").tag(bp)
                             }

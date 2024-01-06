@@ -71,7 +71,7 @@ class MetronomeViewModel: ObservableObject {
         beatsPerMinute = userDefaults.integer(forKey: Defaults.beatsPerMinute)
         beatsPerMeasure = userDefaults.integer(forKey: Defaults.beatsPerMeasure)
         accentFirstBeatEnabled = userDefaults.bool(forKey: Defaults.accentFirstBeatEnabled)
-        beatsPlayed = BeatsPlayed(rawValue: Defaults.beatsPlayed) ?? .all
+        beatsPlayed = BeatsPlayed(rawValue: userDefaults.string(forKey: Defaults.beatsPlayed) ?? BeatsPlayed.all.rawValue) ?? .all
         soundEnabled = userDefaults.bool(forKey: Defaults.soundEnabled)
         
         loadSounds()
