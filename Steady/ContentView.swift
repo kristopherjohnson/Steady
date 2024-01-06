@@ -165,7 +165,7 @@ struct ContentView: View {
     
     /// Switch between running and not-running state
     private func toggleIsRunning() {
-        model.isRunning = !model.isRunning
+        model.isRunning.toggle()
     }
     
     /// Set tempo based on interval between button taps
