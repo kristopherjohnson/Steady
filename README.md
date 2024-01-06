@@ -17,6 +17,7 @@ Click sounds from <https://freesound.org/people/lennartgreen/packs/31848/>
 
 ## To-Do
 
+- Design app icon
 - Add a watchOS target
 - Add numeric-keypad entry screen for beats-per-minute
 - Allow user to save and recall settings as Favorites
