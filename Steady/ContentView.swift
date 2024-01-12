@@ -6,39 +6,119 @@ struct ContentView: View {
     @StateObject private var model = MetronomeViewModel()
     
     @State private var lastTapTempoDate = Date.distantPast
-
-    #if false
+    
+    @State private var isPresentingKeypad = false
+    @State private var keypadValue = ""
+    @State private var isKeypadValueValid = false
+    @FocusState private var isKeypadFocused
+    
+    private var minBeatsPerMinute: Int { model.minBeatsPerMinute }
+    private var maxBeatsPerMinute: Int { model.maxBeatsPerMinute }
+    
+#if false
     @State private var flashEnabled = false
-    #endif
+#endif
     
     var body: some View {
         NavigationStack {
             List {
                 Section {
                     VStack {
-                            HStack {
-                                Image(systemName: "metronome")
-                                Picker("Beats per minute", selection: $model.beatsPerMinute) {
-                                    ForEach(30...300, id: \.self) { n in
-                                        Text("\(n) bpm").tag(n)
+                        HStack {
+                            Image(systemName: "metronome")
+                            Picker("Beats per minute", selection: $model.beatsPerMinute) {
+                                ForEach(minBeatsPerMinute...maxBeatsPerMinute, id: \.self) { n in
+                                    Text("\(n) bpm").tag(n)
+                                }
+                                .accessibilityIdentifier("beatsPerMinutePicker")
+                                .accessibilityHint("Selects the tempo")
+                            }
+                        }
+                        
+                        HStack {
+                            Spacer()
+                            
+                            // Tap Tempo button
+                            Button(action: tapTempo) {
+                                HStack {
+                                    Image(systemName: "hand.tap")
+                                    Text("Tap Tempo")
+                                }
+                                .padding(4.0)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .accessibilityIdentifier("tapTempoButton")
+                            .accessibilityHint("Sets tempo from taps")
+                            
+                            Spacer()
+                            
+                            // Keypad entry button
+                            Button {
+                                keypadValue = String(model.beatsPerMinute)
+                                isKeypadValueValid = true
+                                isPresentingKeypad = true
+                            } label: {
+                                HStack {
+                                    Image(systemName: "keyboard")
+                                    Text("Keypad")
+                                }
+                                .padding(4.0)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .accessibilityIdentifier("enterTempoButton")
+                            .accessibilityHint("Enter tempo via keypad")
+                            .sheet(isPresented: $isPresentingKeypad) {
+                                NavigationView {
+                                    List {
+                                        HStack {
+                                            Image(systemName: "metronome")
+                                            Text("Beats per minute")
+                                            
+                                            TextField("\(minBeatsPerMinute)–\(maxBeatsPerMinute)", text: $keypadValue)
+                                                .keyboardType(.numberPad)
+                                                .multilineTextAlignment(.trailing)
+                                                .autocorrectionDisabled()
+                                                .textContentType(nil)
+                                                .accessibilityIdentifier("enterTempoField")
+                                                .accessibilityHint("Enter new tempo")
+                                                .focused($isKeypadFocused)
+                                                .onSubmit(onKeypadDone)
+                                                .onChange(of: keypadValue) { oldValue, newValue in
+                                                    var value = newValue
+                                                    var valueChanged = false
+                                                    if value.count > 3 {
+                                                        value = String(newValue.prefix(3))
+                                                        valueChanged = true
+                                                    }
+                                                    isKeypadValueValid = isValidBeatsPerMinute(text: value)
+                                                    if valueChanged {
+                                                        print("changing keypadValue")
+                                                        keypadValue = value
+                                                    }
+                                                }
+                                        }
                                     }
-                                    .accessibilityIdentifier("beatsPerMinutePicker")
-                                    .accessibilityHint("Selects the tempo")
+                                    .navigationBarTitle("Enter Tempo", displayMode: .inline)
+                                    .navigationBarItems(
+                                        leading: Button("Cancel") {
+                                            isPresentingKeypad = false
+                                        },
+                                        trailing: Button("Done") {
+                                            onKeypadDone()
+                                        }
+                                            .disabled(!isKeypadValueValid)
+                                    )
+                                    .onAppear {
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                                            isKeypadFocused = true
+                                        }
+                                    }
                                 }
                             }
-                        
-                        // Tap Tempo button
-                        Button(action: tapTempo) {
-                            HStack {
-                                Image(systemName: "hand.tap")
-                                Text("Tap Tempo")
-                            }
-                            .padding(4.0)
+                            
+                            Spacer()
                         }
-                        .font(.title)
-                        .buttonStyle(.borderedProminent)
-                        .accessibilityIdentifier("tapTempoButton")
-                        .accessibilityHint("Sets tempo from taps")
+                        .padding(.top)
                     }
                 }
                 .padding(.bottom)
@@ -74,7 +154,7 @@ struct ContentView: View {
                     }
                 }
                 
-                #if false
+#if false
                 Section("Options") {
                     HStack {
                         Image(systemName: "speaker.wave.1")
@@ -90,7 +170,7 @@ struct ContentView: View {
                             .accessibilityHint("Enables visual flash for each click")
                     }
                 }
-                #endif
+#endif
                 
                 Section {
                     VStack {
@@ -181,14 +261,33 @@ struct ContentView: View {
         lastTapTempoDate = now
     }
     
+    /// Handle tap of the Done button in the tempo entry keypad.
+    ///
+    /// If the text field holds a valid value, then that is set as the new tempo
+    /// and then the sheet is dismissed.  Otherwise, there is no effect.
+    private func onKeypadDone() {
+        if let newBeatsPerMinute = Int(keypadValue) {
+            if newBeatsPerMinute >= minBeatsPerMinute && newBeatsPerMinute <= maxBeatsPerMinute {
+                model.beatsPerMinute = newBeatsPerMinute
+                isPresentingKeypad = false
+            }
+        }
+    }
+    
+    /// Determine whether the given text is a valid value for beatsPerMinute.
+    private func isValidBeatsPerMinute(text: String) -> Bool {
+        guard let beatsPerMinute = Int(text) else { return false }
+        return beatsPerMinute >= minBeatsPerMinute && beatsPerMinute <= maxBeatsPerMinute
+    }
+    
     /// Return symbol name for given beatIndex.
     ///
     /// Returns a filled circle if the index matches
     /// the model's current beat index
-    func symbolName(beatIndex: Int) -> String {
+    private func symbolName(beatIndex: Int) -> String {
         return beatIndex == model.beatIndex
-            ? "\(beatIndex).circle.fill"
-            : "\(beatIndex).circle"
+        ? "\(beatIndex).circle.fill"
+        : "\(beatIndex).circle"
     }
 }
 

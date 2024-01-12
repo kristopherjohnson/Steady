@@ -5,6 +5,9 @@ import Combine
 /// Implementation of metronome state and operation for use by ContentView.
 class MetronomeViewModel: ObservableObject {
     
+    let minBeatsPerMinute = 30
+    let maxBeatsPerMinute = 300
+    
     /// Set true to enable the metronome's periodic clicking.
     @Published var isRunning = false {
         didSet {
@@ -60,15 +63,22 @@ class MetronomeViewModel: ObservableObject {
             UserDefaults.standard.setValue(soundEnabled, forKey: Defaults.soundEnabled)
         }
     }
-
+    
     private var metronomeTimer: AnyCancellable?
     
     private var clickAudioPlayer: AVAudioPlayer?
     private var accentAudioPlayer: AVAudioPlayer?
-
+    
     init() {
         let userDefaults = UserDefaults.standard
-        beatsPerMinute = userDefaults.integer(forKey: Defaults.beatsPerMinute)
+        
+        beatsPerMinute = max(
+            min(
+                userDefaults.integer(forKey: Defaults.beatsPerMinute),
+                maxBeatsPerMinute
+            ),
+            minBeatsPerMinute)
+        
         beatsPerMeasure = userDefaults.integer(forKey: Defaults.beatsPerMeasure)
         accentFirstBeatEnabled = userDefaults.bool(forKey: Defaults.accentFirstBeatEnabled)
         beatsPlayed = BeatsPlayed(rawValue: userDefaults.string(forKey: Defaults.beatsPlayed) ?? BeatsPlayed.all.rawValue) ?? .all
@@ -76,10 +86,10 @@ class MetronomeViewModel: ObservableObject {
         
         loadSounds()
     }
-
+    
     private func startTimer() {
         stopTimer()
-
+        
         beatIndex = 1
         self.playClickSound()
         
@@ -92,23 +102,23 @@ class MetronomeViewModel: ObservableObject {
                 if !self.isRunning {
                     return
                 }
-
+                
                 var nextBeatIndex = self.beatIndex + 1
                 if nextBeatIndex > self.beatsPerMeasure {
                     nextBeatIndex = 1
                 }
-                self.beatIndex = nextBeatIndex                
+                self.beatIndex = nextBeatIndex
                 
                 self.playClickSound()
             }
     }
-
+    
     private func stopTimer() {
         beatIndex = 0
         metronomeTimer?.cancel()
         metronomeTimer = nil
     }
-
+    
     private func loadSounds() {
         guard let clickUrl = Bundle.main.url(forResource: "click_low", withExtension: "wav") else {
             fatalError("click sound not found.")
@@ -128,7 +138,7 @@ class MetronomeViewModel: ObservableObject {
             fatalError("unable to load click sound: \(error)")
         }
     }
-
+    
     private func playClickSound() {
         if soundEnabled {
             if accentFirstBeatEnabled && (beatIndex == 1) {
