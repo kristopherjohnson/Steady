@@ -8,7 +8,7 @@ struct BigButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.largeTitle)
-            .frame(minWidth: 210)
+            .frame(minWidth: 200)
             .padding()
             .background(configuration.isPressed ? color.opacity(0.7) : color)
             .foregroundColor(.white)

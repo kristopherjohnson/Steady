@@ -23,17 +23,28 @@ struct ContentView: View {
         NavigationStack {
             List {
                 Section {
+                    HStack {
+                        Spacer()
+                        Image(systemName: "metronome")
+                        Text("Steady")
+                        Spacer()
+                    }
+                    .font(.title)
+                }
+                .listRowBackground(Color.clear)
+                
+                Section {
                     VStack {
-                        HStack {
-                            Image(systemName: "metronome")
-                            Picker("Beats per minute", selection: $model.beatsPerMinute) {
-                                ForEach(minBeatsPerMinute...maxBeatsPerMinute, id: \.self) { n in
-                                    Text("\(n) bpm").tag(n)
-                                }
-                                .accessibilityIdentifier("beatsPerMinutePicker")
-                                .accessibilityHint("Selects the tempo")
+                        Picker("Tempo", selection: $model.beatsPerMinute) {
+                            ForEach(minBeatsPerMinute...maxBeatsPerMinute, id: \.self) { n in
+                                Text("\(n) bpm").tag(n)
                             }
+                            .accessibilityIdentifier("beatsPerMinutePicker")
+                            .accessibilityHint("Selects the tempo")
                         }
+                        .pickerStyle(.wheel)
+                        .disabled(model.isRunning)
+                        .opacity(model.isRunning ? 0.6 : 1.0)
                         
                         HStack {
                             Spacer()
@@ -118,59 +129,8 @@ struct ContentView: View {
                             
                             Spacer()
                         }
-                        .padding(.top)
                     }
                 }
-                .padding(.bottom)
-                
-                Section {
-                    HStack {
-                        Image(systemName: "lines.measurement.horizontal")
-                        Picker("Beats per measure", selection: $model.beatsPerMeasure) {
-                            ForEach(2...16, id: \.self) { n in
-                                Text("\(n)").tag(n)
-                            }
-                            .accessibilityIdentifier("beatsPerMeasurePicker")
-                            .accessibilityHint("Selects the number of beats per measure")
-                        }
-                    }
-                    
-                    HStack {
-                        Image(systemName: "1.square")
-                        Toggle("Accent first beat", isOn: $model.accentFirstBeatEnabled)
-                            .accessibilityIdentifier("accessFirstBeatEnabledToggle")
-                            .accessibilityHint("Play a different sound for the first beat of a measure")
-                    }
-                    
-                    HStack {
-                        Image(systemName: "music.quarternote.3")
-                        Picker("Play click on", selection: $model.beatsPlayed) {
-                            ForEach(BeatsPlayed.allCases) { bp in
-                                Text("\(bp.rawValue)").tag(bp)
-                            }
-                        }
-                        .accessibilityIdentifier("beatsPicker")
-                        .accessibilityHint("Selects on which beats a click will be played")
-                    }
-                }
-                
-#if false
-                Section("Options") {
-                    HStack {
-                        Image(systemName: "speaker.wave.1")
-                        Toggle("Sound enabled", isOn: $soundEnabled)
-                            .accessibilityIdentifier("soundEnabledToggle")
-                            .accessibilityHint("Enables audio click sounds")
-                    }
-                    
-                    HStack {
-                        Image(systemName: "bolt")
-                        Toggle("Flash enabled", isOn: $flashEnabled)
-                            .accessibilityIdentifier("flashEnabledToggle")
-                            .accessibilityHint("Enables visual flash for each click")
-                    }
-                }
-#endif
                 
                 Section {
                     VStack {
@@ -238,8 +198,38 @@ struct ContentView: View {
                     }
                     .listRowBackground(Color.clear)
                 }
+                
+                Section("Options") {
+                    HStack {
+                        Image(systemName: "lines.measurement.horizontal")
+                        Picker("Beats per measure", selection: $model.beatsPerMeasure) {
+                            ForEach(2...16, id: \.self) { n in
+                                Text("\(n)").tag(n)
+                            }
+                            .accessibilityIdentifier("beatsPerMeasurePicker")
+                            .accessibilityHint("Selects the number of beats per measure")
+                        }
+                    }
+                    
+                    HStack {
+                        Image(systemName: "1.square")
+                        Toggle("Accent first beat", isOn: $model.accentFirstBeatEnabled)
+                            .accessibilityIdentifier("accessFirstBeatEnabledToggle")
+                            .accessibilityHint("Play a different sound for the first beat of a measure")
+                    }
+                    
+                    HStack {
+                        Image(systemName: "music.quarternote.3")
+                        Picker("Play click on", selection: $model.beatsPlayed) {
+                            ForEach(BeatsPlayed.allCases) { bp in
+                                Text("\(bp.rawValue)").tag(bp)
+                            }
+                        }
+                        .accessibilityIdentifier("beatsPicker")
+                        .accessibilityHint("Selects on which beats a click will be played")
+                    }
+                }
             }
-            .navigationTitle("Steady")
         }
     }
     
