@@ -22,6 +22,7 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             List {
+                // Title
                 Section {
                     HStack {
                         Spacer()
@@ -33,6 +34,7 @@ struct ContentView: View {
                 }
                 .listRowBackground(Color.clear)
                 
+                // Tempo picker and buttons
                 Section {
                     VStack {
                         Picker("Tempo", selection: $model.beatsPerMinute) {
@@ -94,7 +96,8 @@ struct ContentView: View {
                                                 .accessibilityHint("Enter new tempo")
                                                 .focused($isKeypadFocused)
                                                 .onSubmit(onKeypadDone)
-                                                .onChange(of: keypadValue) { oldValue, newValue in
+                                                .submitLabel(.done)
+                                                .onChange(of: keypadValue) { _, newValue in
                                                     var value = newValue
                                                     var valueChanged = false
                                                     if value.count > 3 {
@@ -132,6 +135,7 @@ struct ContentView: View {
                     }
                 }
                 
+                // Start/stop and beat indicator
                 Section {
                     VStack {
                         // Beat indicator
@@ -196,9 +200,10 @@ struct ContentView: View {
                             Spacer()
                         }
                     }
-                    .listRowBackground(Color.clear)
                 }
-                
+                .listRowBackground(Color.clear)
+
+                // Options
                 Section("Options") {
                     HStack {
                         Image(systemName: "lines.measurement.horizontal")
