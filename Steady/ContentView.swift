@@ -184,6 +184,7 @@ struct ContentView: View {
                             // Start/Stop button
                             Button(action: toggleIsRunning) {
                                 HStack {
+                                    Spacer()
                                     if model.isRunning {
                                         Image(systemName: "stop.fill")
                                         Text("Stop")
@@ -191,6 +192,7 @@ struct ContentView: View {
                                         Image(systemName: "play.fill")
                                         Text("Start")
                                     }
+                                    Spacer()
                                 }
                             }
                             .buttonStyle(BigButtonStyle(color: model.isRunning ? .red : .green))
