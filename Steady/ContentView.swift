@@ -20,211 +20,209 @@ struct ContentView: View {
 #endif
     
     var body: some View {
-        NavigationStack {
-            List {
-                // Title
-                Section {
-                    HStack {
-                        Spacer()
-                        Image(systemName: "metronome")
-                        Text("Steady")
-                        Spacer()
-                    }
-                    .font(.title)
+        List {
+            // Title
+            Section {
+                HStack {
+                    Spacer()
+                    Image(systemName: "metronome")
+                    Text("Steady")
+                    Spacer()
                 }
-                .listRowBackground(Color.clear)
-                
-                // Tempo picker and buttons
-                Section("Tempo") {
-                    VStack {
-                        Picker("Tempo", selection: $model.beatsPerMinute) {
-                            ForEach(minBeatsPerMinute...maxBeatsPerMinute, id: \.self) { n in
-                                Text("\(n) bpm").tag(n)
-                            }
-                            .accessibilityIdentifier("beatsPerMinutePicker")
-                            .accessibilityHint("Selects the tempo")
-                        }
-                        .pickerStyle(.wheel)
-                        .disabled(model.isRunning)
-                        .opacity(model.isRunning ? 0.6 : 1.0)
-                        
-                        HStack {
-                            // Tap Tempo button
-                            Button(action: tapTempo) {
-                                HStack {
-                                    Image(systemName: "hand.tap")
-                                    Text("Tap Tempo")
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding(8)
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .accessibilityIdentifier("tapTempoButton")
-                            .accessibilityHint("Sets tempo from taps")
-                            
-                            // Keypad entry button
-                            Button {
-                                keypadValue = String(model.beatsPerMinute)
-                                isKeypadValueValid = true
-                                isPresentingKeypad = true
-                            } label: {
-                                HStack {
-                                    Image(systemName: "keyboard")
-                                    Text("Keypad")
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding(8)
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .accessibilityIdentifier("enterTempoButton")
-                            .accessibilityHint("Enter tempo via keypad")
-                            .sheet(isPresented: $isPresentingKeypad) {
-                                NavigationView {
-                                    List {
-                                        HStack {
-                                            Image(systemName: "metronome")
-                                            Text("Beats per minute")
-                                            
-                                            TextField("\(minBeatsPerMinute)–\(maxBeatsPerMinute)", text: $keypadValue)
-                                                .keyboardType(.numberPad)
-                                                .multilineTextAlignment(.trailing)
-                                                .autocorrectionDisabled()
-                                                .textContentType(nil)
-                                                .accessibilityIdentifier("enterTempoField")
-                                                .accessibilityHint("Enter new tempo")
-                                                .focused($isKeypadFocused)
-                                                .onSubmit(onKeypadDone)
-                                                .submitLabel(.done)
-                                                .onChange(of: keypadValue) { _, newValue in
-                                                    var value = newValue
-                                                    var valueChanged = false
-                                                    if value.count > 3 {
-                                                        value = String(newValue.prefix(3))
-                                                        valueChanged = true
-                                                    }
-                                                    isKeypadValueValid = isValidBeatsPerMinute(text: value)
-                                                    if valueChanged {
-                                                        print("changing keypadValue")
-                                                        keypadValue = value
-                                                    }
-                                                }
-                                        }
-                                    }
-                                    .navigationBarTitle("Enter Tempo", displayMode: .inline)
-                                    .navigationBarItems(
-                                        leading: Button("Cancel") {
-                                            isPresentingKeypad = false
-                                        },
-                                        trailing: Button("Done") {
-                                            onKeypadDone()
-                                        }
-                                            .disabled(!isKeypadValueValid)
-                                    )
-                                    .onAppear {
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                                            isKeypadFocused = true
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                .font(.title)
+            }
+            .listRowBackground(Color.clear)
+            
+            // Tempo picker and buttons
+            Section("Tempo") {
+                Picker("Tempo", selection: $model.beatsPerMinute) {
+                    ForEach(minBeatsPerMinute...maxBeatsPerMinute, id: \.self) { n in
+                        Text("\(n) bpm").tag(n)
                     }
+                    .accessibilityIdentifier("beatsPerMinutePicker")
+                    .accessibilityHint("Selects the tempo")
                 }
+                .pickerStyle(.wheel)
+                .disabled(model.isRunning)
+                .opacity(model.isRunning ? 0.6 : 1.0)
                 
-                // Start/stop and beat indicator
-                Section {
-                    
-                    if model.beatsPerMeasure > 8 {
-                        let mid = (model.beatsPerMeasure + 1) / 2
+                HStack {
+                    // Tap Tempo button
+                    Button(action: tapTempo) {
                         HStack {
-                            Spacer()
-                            ForEach(1...mid, id: \.self) { n in
-                                Image(systemName: symbolName(beatIndex: n))
-                                    .resizable()
-                                    .frame(width: 30, height: 30)
-                                    .foregroundStyle(.gray)
-                            }
-                            Spacer()
+                            Image(systemName: "hand.tap")
+                            Text("Tap Tempo")
                         }
-                        
-                        HStack {
-                            Spacer()
-                            ForEach((mid+1)...model.beatsPerMeasure, id: \.self) { n in
-                                Image(systemName: symbolName(beatIndex: n))
-                                    .resizable()
-                                    .frame(width: 30, height: 30)
-                                    .foregroundStyle(.gray)
-                            }
-                            Spacer()
-                        }
-                    } else {
-                        HStack {
-                            Spacer()
-                            ForEach(1...model.beatsPerMeasure, id: \.self) { n in
-                                Image(systemName: symbolName(beatIndex: n))
-                                    .resizable()
-                                    .frame(width: 30, height: 30)
-                                    .foregroundStyle(.gray)
-                            }
-                            Spacer()
-                        }
-                    }
-                    
-                    HStack {
-                        // Start/Stop button
-                        Button(action: toggleIsRunning) {
-                            HStack {
-                                if model.isRunning {
-                                    Image(systemName: "stop.fill")
-                                    Text("Stop")
-                                } else {
-                                    Image(systemName: "play.fill")
-                                    Text("Start")
-                                }
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(BigButtonStyle(color: model.isRunning ? .red : .green))
                         .frame(maxWidth: .infinity)
-                        .accessibilityIdentifier("startStopButton")
-                        .accessibilityHint("Starts or stops the metronome")
-                        
+                        .padding(6)
                     }
-                    .padding(.top)
+                    .buttonStyle(.borderedProminent)
+                    .clipShape(.capsule)
+                    .accessibilityIdentifier("tapTempoButton")
+                    .accessibilityHint("Sets tempo from taps")
+                    
+                    // Keypad entry button
+                    Button {
+                        keypadValue = String(model.beatsPerMinute)
+                        isKeypadValueValid = true
+                        isPresentingKeypad = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "keyboard")
+                            Text("Keypad")
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(6)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .clipShape(.capsule)
+                    .accessibilityIdentifier("enterTempoButton")
+                    .accessibilityHint("Enter tempo via keypad")
+                    .sheet(isPresented: $isPresentingKeypad) {
+                        NavigationView {
+                            List {
+                                HStack {
+                                    Image(systemName: "metronome")
+                                    Text("Beats per minute")
+                                    
+                                    TextField("\(minBeatsPerMinute)–\(maxBeatsPerMinute)", text: $keypadValue)
+                                        .keyboardType(.numberPad)
+                                        .multilineTextAlignment(.trailing)
+                                        .autocorrectionDisabled()
+                                        .textContentType(nil)
+                                        .accessibilityIdentifier("enterTempoField")
+                                        .accessibilityHint("Enter new tempo")
+                                        .focused($isKeypadFocused)
+                                        .onSubmit(onKeypadDone)
+                                        .submitLabel(.done)
+                                        .onChange(of: keypadValue) { _, newValue in
+                                            var value = newValue
+                                            var valueChanged = false
+                                            if value.count > 3 {
+                                                value = String(newValue.prefix(3))
+                                                valueChanged = true
+                                            }
+                                            isKeypadValueValid = isValidBeatsPerMinute(text: value)
+                                            if valueChanged {
+                                                print("changing keypadValue")
+                                                keypadValue = value
+                                            }
+                                        }
+                                }
+                            }
+                            .navigationBarTitle("Enter Tempo", displayMode: .inline)
+                            .navigationBarItems(
+                                leading: Button("Cancel") {
+                                    isPresentingKeypad = false
+                                },
+                                trailing: Button("Done") {
+                                    onKeypadDone()
+                                }
+                                    .disabled(!isKeypadValueValid)
+                            )
+                            .onAppear {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                                    isKeypadFocused = true
+                                }
+                            }
+                        }
+                    }
                 }
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets())
+            }
+            
+            // Start/stop and beat indicator
+            Section {
                 
-                // Options
-                Section("Options") {
+                if model.beatsPerMeasure > 8 {
+                    let mid = (model.beatsPerMeasure + 1) / 2
                     HStack {
-                        Image(systemName: "lines.measurement.horizontal")
-                        Picker("Beats per measure", selection: $model.beatsPerMeasure) {
-                            ForEach(2...16, id: \.self) { n in
-                                Text("\(n)").tag(n)
-                            }
-                            .accessibilityIdentifier("beatsPerMeasurePicker")
-                            .accessibilityHint("Selects the number of beats per measure")
+                        Spacer()
+                        ForEach(1...mid, id: \.self) { n in
+                            Image(systemName: symbolName(beatIndex: n))
+                                .resizable()
+                                .frame(width: 30, height: 30)
+                                .foregroundStyle(.gray)
                         }
+                        Spacer()
                     }
                     
                     HStack {
-                        Image(systemName: "1.square")
-                        Toggle("Accent first beat", isOn: $model.accentFirstBeatEnabled)
-                            .accessibilityIdentifier("accessFirstBeatEnabledToggle")
-                            .accessibilityHint("Play a different sound for the first beat of a measure")
+                        Spacer()
+                        ForEach((mid+1)...model.beatsPerMeasure, id: \.self) { n in
+                            Image(systemName: symbolName(beatIndex: n))
+                                .resizable()
+                                .frame(width: 30, height: 30)
+                                .foregroundStyle(.gray)
+                        }
+                        Spacer()
                     }
-                    
+                } else {
                     HStack {
-                        Image(systemName: "music.quarternote.3")
-                        Picker("Play click on", selection: $model.beatsPlayed) {
-                            ForEach(BeatsPlayed.allCases) { bp in
-                                Text("\(bp.rawValue)").tag(bp)
+                        Spacer()
+                        ForEach(1...model.beatsPerMeasure, id: \.self) { n in
+                            Image(systemName: symbolName(beatIndex: n))
+                                .resizable()
+                                .frame(width: 30, height: 30)
+                                .foregroundStyle(.gray)
+                        }
+                        Spacer()
+                    }
+                }
+                
+                HStack {
+                    // Start/Stop button
+                    Button(action: toggleIsRunning) {
+                        HStack {
+                            if model.isRunning {
+                                Image(systemName: "stop.fill")
+                                Text("Stop")
+                            } else {
+                                Image(systemName: "play.fill")
+                                Text("Start")
                             }
                         }
-                        .accessibilityIdentifier("beatsPicker")
-                        .accessibilityHint("Selects on which beats a click will be played")
+                        .frame(maxWidth: .infinity)
                     }
+                    .buttonStyle(BigButtonStyle(color: model.isRunning ? .red : .green))
+                    .frame(maxWidth: .infinity)
+                    .accessibilityIdentifier("startStopButton")
+                    .accessibilityHint("Starts or stops the metronome")
+                    
+                }
+                .padding(.top)
+            }
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
+            
+            // Options
+            Section("Options") {
+                HStack {
+                    Image(systemName: "lines.measurement.horizontal")
+                    Picker("Beats per measure", selection: $model.beatsPerMeasure) {
+                        ForEach(2...16, id: \.self) { n in
+                            Text("\(n)").tag(n)
+                        }
+                        .accessibilityIdentifier("beatsPerMeasurePicker")
+                        .accessibilityHint("Selects the number of beats per measure")
+                    }
+                }
+                
+                HStack {
+                    Image(systemName: "1.square")
+                    Toggle("Accent first beat", isOn: $model.accentFirstBeatEnabled)
+                        .accessibilityIdentifier("accessFirstBeatEnabledToggle")
+                        .accessibilityHint("Play a different sound for the first beat of a measure")
+                }
+                
+                HStack {
+                    Image(systemName: "music.quarternote.3")
+                    Picker("Play click on", selection: $model.beatsPlayed) {
+                        ForEach(BeatsPlayed.allCases) { bp in
+                            Text("\(bp.rawValue)").tag(bp)
+                        }
+                    }
+                    .accessibilityIdentifier("beatsPicker")
+                    .accessibilityHint("Selects on which beats a click will be played")
                 }
             }
         }
