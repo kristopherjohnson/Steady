@@ -17,6 +17,5 @@ struct BigButtonStyle: ButtonStyle {
                 RoundedRectangle(cornerRadius: 8)
                     .stroke(color, lineWidth: 2)
             )
-            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
     }
 }

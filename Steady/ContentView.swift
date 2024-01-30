@@ -35,7 +35,7 @@ struct ContentView: View {
                 .listRowBackground(Color.clear)
                 
                 // Tempo picker and buttons
-                Section {
+                Section("Tempo") {
                     VStack {
                         Picker("Tempo", selection: $model.beatsPerMinute) {
                             ForEach(minBeatsPerMinute...maxBeatsPerMinute, id: \.self) { n in
@@ -49,21 +49,18 @@ struct ContentView: View {
                         .opacity(model.isRunning ? 0.6 : 1.0)
                         
                         HStack {
-                            Spacer()
-                            
                             // Tap Tempo button
                             Button(action: tapTempo) {
                                 HStack {
                                     Image(systemName: "hand.tap")
                                     Text("Tap Tempo")
                                 }
-                                .padding(4.0)
+                                .frame(maxWidth: .infinity)
+                                .padding(8)
                             }
                             .buttonStyle(.borderedProminent)
                             .accessibilityIdentifier("tapTempoButton")
                             .accessibilityHint("Sets tempo from taps")
-                            
-                            Spacer()
                             
                             // Keypad entry button
                             Button {
@@ -75,7 +72,8 @@ struct ContentView: View {
                                     Image(systemName: "keyboard")
                                     Text("Keypad")
                                 }
-                                .padding(4.0)
+                                .frame(maxWidth: .infinity)
+                                .padding(8)
                             }
                             .buttonStyle(.borderedProminent)
                             .accessibilityIdentifier("enterTempoButton")
@@ -129,82 +127,74 @@ struct ContentView: View {
                                     }
                                 }
                             }
-                            
-                            Spacer()
                         }
                     }
                 }
                 
                 // Start/stop and beat indicator
                 Section {
-                    VStack {
-                        // Beat indicator
-                        VStack {
-                            if model.beatsPerMeasure > 8 {
-                                let mid = (model.beatsPerMeasure + 1) / 2
-                                HStack {
-                                    Spacer()
-                                    ForEach(1...mid, id: \.self) { n in
-                                        Image(systemName: symbolName(beatIndex: n))
-                                            .resizable()
-                                            .frame(width: 30, height: 30)
-                                            .foregroundStyle(.gray)
-                                    }
-                                    Spacer()
-                                }
-                                
-                                HStack {
-                                    Spacer()
-                                    ForEach((mid+1)...model.beatsPerMeasure, id: \.self) { n in
-                                        Image(systemName: symbolName(beatIndex: n))
-                                            .resizable()
-                                            .frame(width: 30, height: 30)
-                                            .foregroundStyle(.gray)
-                                    }
-                                    Spacer()
-                                }
-                            } else {
-                                HStack {
-                                    Spacer()
-                                    ForEach(1...model.beatsPerMeasure, id: \.self) { n in
-                                        Image(systemName: symbolName(beatIndex: n))
-                                            .resizable()
-                                            .frame(width: 30, height: 30)
-                                            .foregroundStyle(.gray)
-                                    }
-                                    Spacer()
-                                }
+                    
+                    if model.beatsPerMeasure > 8 {
+                        let mid = (model.beatsPerMeasure + 1) / 2
+                        HStack {
+                            Spacer()
+                            ForEach(1...mid, id: \.self) { n in
+                                Image(systemName: symbolName(beatIndex: n))
+                                    .resizable()
+                                    .frame(width: 30, height: 30)
+                                    .foregroundStyle(.gray)
                             }
+                            Spacer()
                         }
-                        .padding(.bottom)
                         
                         HStack {
                             Spacer()
-                            
-                            // Start/Stop button
-                            Button(action: toggleIsRunning) {
-                                HStack {
-                                    Spacer()
-                                    if model.isRunning {
-                                        Image(systemName: "stop.fill")
-                                        Text("Stop")
-                                    } else {
-                                        Image(systemName: "play.fill")
-                                        Text("Start")
-                                    }
-                                    Spacer()
-                                }
+                            ForEach((mid+1)...model.beatsPerMeasure, id: \.self) { n in
+                                Image(systemName: symbolName(beatIndex: n))
+                                    .resizable()
+                                    .frame(width: 30, height: 30)
+                                    .foregroundStyle(.gray)
                             }
-                            .buttonStyle(BigButtonStyle(color: model.isRunning ? .red : .green))
-                            .accessibilityIdentifier("startStopButton")
-                            .accessibilityHint("Starts or stops the metronome")
-                            
+                            Spacer()
+                        }
+                    } else {
+                        HStack {
+                            Spacer()
+                            ForEach(1...model.beatsPerMeasure, id: \.self) { n in
+                                Image(systemName: symbolName(beatIndex: n))
+                                    .resizable()
+                                    .frame(width: 30, height: 30)
+                                    .foregroundStyle(.gray)
+                            }
                             Spacer()
                         }
                     }
+                    
+                    HStack {
+                        // Start/Stop button
+                        Button(action: toggleIsRunning) {
+                            HStack {
+                                if model.isRunning {
+                                    Image(systemName: "stop.fill")
+                                    Text("Stop")
+                                } else {
+                                    Image(systemName: "play.fill")
+                                    Text("Start")
+                                }
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(BigButtonStyle(color: model.isRunning ? .red : .green))
+                        .frame(maxWidth: .infinity)
+                        .accessibilityIdentifier("startStopButton")
+                        .accessibilityHint("Starts or stops the metronome")
+                        
+                    }
+                    .padding(.top)
                 }
                 .listRowBackground(Color.clear)
-
+                .listRowInsets(EdgeInsets())
+                
                 // Options
                 Section("Options") {
                     HStack {
