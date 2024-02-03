@@ -120,6 +120,14 @@ class MetronomeViewModel: ObservableObject {
     }
     
     private func loadSounds() {
+        do {
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playback)
+            try session.setActive(true)
+        } catch {
+            print("Failed to set audio session category. Error: \(error)")
+        }
+        
         guard let clickUrl = Bundle.main.url(forResource: "click_low", withExtension: "wav") else {
             fatalError("click sound not found.")
         }
