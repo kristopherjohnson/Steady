@@ -40,12 +40,12 @@ struct ContentView: View {
                         Text("\(n) bpm").tag(n)
                     }
                 }
-                .pickerStyle(.wheel)
+                .pickerStyleForPlatform()
                 .disabled(model.isRunning)
                 .opacity(model.isRunning ? 0.6 : 1.0)
                 .accessibilityIdentifier("beatsPerMinutePicker")
                 .accessibilityHint("Selects the tempo")
-
+                
                 HStack {
                     // Tap Tempo button
                     Button(action: tapTempo) {
@@ -86,7 +86,7 @@ struct ContentView: View {
                                     Text("Beats per minute")
                                     
                                     TextField("\(minBeatsPerMinute)–\(maxBeatsPerMinute)", text: $keypadValue)
-                                        .keyboardType(.numberPad)
+                                        .numberPadKeyboardTypeForPlatform()
                                         .multilineTextAlignment(.trailing)
                                         .autocorrectionDisabled()
                                         .textContentType(nil)
@@ -110,7 +110,7 @@ struct ContentView: View {
                                         }
                                 }
                             }
-                            .navigationBarTitle("Enter Tempo", displayMode: .inline)
+                            .tempoNavigationBarTitleForPlatform()
                             .navigationBarItems(
                                 leading: Button("Cancel") {
                                     isPresentingKeypad = false
@@ -273,6 +273,35 @@ struct ContentView: View {
         return beatIndex == model.beatIndex
         ? "\(beatIndex).circle.fill"
         : "\(beatIndex).circle"
+    }
+}
+
+extension View {
+    @ViewBuilder
+    func numberPadKeyboardTypeForPlatform() -> some View {
+#if os(iOS)
+        self.keyboardType(.numberPad)
+#else
+        self
+#endif
+    }
+    
+    @ViewBuilder
+    func pickerStyleForPlatform() -> some View {
+#if os(iOS)
+        self.pickerStyle(WheelPickerStyle())
+#else
+        self.pickerStyle(DefaultPickerStyle())
+#endif
+    }
+    
+    @ViewBuilder
+    func tempoNavigationBarTitleForPlatform() -> some View {
+#if os(iOS)
+        self.navigationBarTitle("Enter Tempo", displayMode: .inline)
+#else
+        self
+#endif
     }
 }
 
