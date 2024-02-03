@@ -20,7 +20,7 @@ struct ContentView: View {
 #endif
     
     var body: some View {
-        List {
+        Form {
             // Title
             Section {
                 HStack {
@@ -39,13 +39,13 @@ struct ContentView: View {
                     ForEach(minBeatsPerMinute...maxBeatsPerMinute, id: \.self) { n in
                         Text("\(n) bpm").tag(n)
                     }
-                    .accessibilityIdentifier("beatsPerMinutePicker")
-                    .accessibilityHint("Selects the tempo")
                 }
                 .pickerStyle(.wheel)
                 .disabled(model.isRunning)
                 .opacity(model.isRunning ? 0.6 : 1.0)
-                
+                .accessibilityIdentifier("beatsPerMinutePicker")
+                .accessibilityHint("Selects the tempo")
+
                 HStack {
                     // Tap Tempo button
                     Button(action: tapTempo) {
@@ -80,7 +80,7 @@ struct ContentView: View {
                     .accessibilityHint("Enter tempo via keypad")
                     .sheet(isPresented: $isPresentingKeypad) {
                         NavigationView {
-                            List {
+                            Form {
                                 HStack {
                                     Image(systemName: "metronome")
                                     Text("Beats per minute")
