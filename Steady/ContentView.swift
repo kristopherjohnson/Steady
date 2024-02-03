@@ -63,8 +63,8 @@ struct ContentView: View {
                     
                     // Keypad entry button
                     Button {
-                        keypadValue = String(model.beatsPerMinute)
-                        isKeypadValueValid = true
+                        keypadValue = ""
+                        isKeypadValueValid = false
                         isPresentingKeypad = true
                     } label: {
                         HStack {
