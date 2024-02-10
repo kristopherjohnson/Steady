@@ -32,12 +32,14 @@ class MetronomeViewModel: ObservableObject {
         }
     }
     
+    /// Current beat index
     @Published var beatIndex = 0 {
         didSet {
             assert(beatIndex >= 0)
         }
     }
     
+    /// Number of beats per measure
     @Published var beatsPerMeasure: Int {
         didSet {
             assert(beatsPerMeasure >= 2)
@@ -46,25 +48,30 @@ class MetronomeViewModel: ObservableObject {
         }
     }
     
+    /// If set true, first beat of each measure has a different sound
     @Published var accentFirstBeatEnabled: Bool {
         didSet {
             UserDefaults.standard.setValue(accentFirstBeatEnabled, forKey: Defaults.accentFirstBeatEnabled)
         }
     }
     
+    /// Which beats of a measure to play sounds on
     @Published var beatsPlayed: BeatsPlayed {
         didSet {
             UserDefaults.standard.setValue(beatsPlayed.rawValue, forKey: Defaults.beatsPlayed)
         }
     }
     
+    /// If true, make audio sounds.  Otherwise, silent.
     @Published var soundEnabled: Bool {
         didSet {
             UserDefaults.standard.setValue(soundEnabled, forKey: Defaults.soundEnabled)
         }
     }
     
-    private var metronomeTimer: AnyCancellable?
+    private let metronomeDispatchQueue = DispatchQueue(label: "net.kristopherjohnson.Steady.metronome", attributes: .concurrent)
+    
+    private var metronomeTimer: DispatchSourceTimer?
     
     private var clickAudioPlayer: AVAudioPlayer?
     private var accentAudioPlayer: AVAudioPlayer?
@@ -90,15 +97,17 @@ class MetronomeViewModel: ObservableObject {
     private func startTimer() {
         stopTimer()
         
-        beatIndex = 1
-        self.playClickSound()
-        
+        beatIndex = 0
         let interval = 60.0 / Double(beatsPerMinute)
-        metronomeTimer = Timer.publish(every: interval, tolerance: 0.01, on: .main, in: .common)
-            .autoconnect()
-            .sink { [weak self] _ in
-                guard let self else { return }
-                
+        
+        metronomeTimer = DispatchSource.makeTimerSource(
+            flags: .strict,
+            queue: metronomeDispatchQueue)
+        
+        metronomeTimer?.setEventHandler { [weak self] in
+            guard let self else { return }
+            
+            DispatchQueue.main.async {
                 if !self.isRunning {
                     return
                 }
@@ -108,9 +117,13 @@ class MetronomeViewModel: ObservableObject {
                     nextBeatIndex = 1
                 }
                 self.beatIndex = nextBeatIndex
-                
+
                 self.playClickSound()
             }
+        }
+        
+        metronomeTimer?.schedule(deadline: .now(), repeating: interval, leeway: .milliseconds(10))
+        metronomeTimer?.activate()
     }
     
     private func stopTimer() {
@@ -120,7 +133,7 @@ class MetronomeViewModel: ObservableObject {
     }
     
     private func loadSounds() {
-        #if os(iOS)
+#if os(iOS)
         do {
             let session = AVAudioSession.sharedInstance()
             try session.setCategory(.playback)
@@ -128,7 +141,7 @@ class MetronomeViewModel: ObservableObject {
         } catch {
             print("Failed to set audio session category. Error: \(error)")
         }
-        #endif
+#endif
         
         guard let clickUrl = Bundle.main.url(forResource: "click_low", withExtension: "wav") else {
             fatalError("click sound not found.")
