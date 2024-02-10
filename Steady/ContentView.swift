@@ -15,10 +15,6 @@ struct ContentView: View {
     private var minBeatsPerMinute: Int { model.minBeatsPerMinute }
     private var maxBeatsPerMinute: Int { model.maxBeatsPerMinute }
     
-#if false
-    @State private var flashEnabled = false
-#endif
-    
     var body: some View {
         Form {
             // Title
