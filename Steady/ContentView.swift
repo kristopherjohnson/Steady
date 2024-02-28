@@ -22,7 +22,9 @@ struct ContentView: View {
                 HStack {
                     Spacer()
                     Image(systemName: "metronome")
+                        .accessibilityHidden(true)
                     Text("Steady")
+                        .accessibilityHidden(true)
                     Spacer()
                 }
                 .font(.title)
@@ -77,13 +79,9 @@ struct ContentView: View {
                     .sheet(isPresented: $isPresentingKeypad) {
                         NavigationView {
                             Form {
-                                HStack {
-                                    Image(systemName: "metronome")
-                                    Text("Beats per minute")
-                                    
-                                    TextField("\(minBeatsPerMinute)–\(maxBeatsPerMinute)", text: $keypadValue)
+                                Section("Enter tempo (\(minBeatsPerMinute)-\(maxBeatsPerMinute)") {
+                                    TextField("Beats per minute", text: $keypadValue)
                                         .numberPadKeyboardTypeForPlatform()
-                                        .multilineTextAlignment(.trailing)
                                         .autocorrectionDisabled()
                                         .textContentType(nil)
                                         .accessibilityIdentifier("enterTempoField")
@@ -106,7 +104,6 @@ struct ContentView: View {
                                         }
                                 }
                             }
-                            .tempoNavigationBarTitleForPlatform()
                             .navigationBarItems(
                                 leading: Button("Cancel") {
                                     isPresentingKeypad = false
@@ -138,6 +135,7 @@ struct ContentView: View {
                                 .resizable()
                                 .frame(width: 30, height: 30)
                                 .foregroundStyle(.gray)
+                                .accessibilityHidden(true)
                         }
                         Spacer()
                     }
@@ -149,6 +147,7 @@ struct ContentView: View {
                                 .resizable()
                                 .frame(width: 30, height: 30)
                                 .foregroundStyle(.gray)
+                                .accessibilityHidden(true)
                         }
                         Spacer()
                     }
@@ -160,6 +159,7 @@ struct ContentView: View {
                                 .resizable()
                                 .frame(width: 30, height: 30)
                                 .foregroundStyle(.gray)
+                                .accessibilityHidden(true)
                         }
                         Spacer()
                     }
@@ -194,6 +194,7 @@ struct ContentView: View {
             Section("Options") {
                 HStack {
                     Image(systemName: "lines.measurement.horizontal")
+                        .accessibilityHidden(true)
                     Picker("Beats per measure", selection: $model.beatsPerMeasure) {
                         ForEach(2...16, id: \.self) { n in
                             Text("\(n)").tag(n)
@@ -205,6 +206,7 @@ struct ContentView: View {
                 
                 HStack {
                     Image(systemName: "1.square")
+                        .accessibilityHidden(true)
                     Toggle("Accent first beat", isOn: $model.accentFirstBeatEnabled)
                         .accessibilityIdentifier("accessFirstBeatEnabledToggle")
                         .accessibilityHint("Play a different sound for the first beat of a measure")
@@ -212,6 +214,7 @@ struct ContentView: View {
                 
                 HStack {
                     Image(systemName: "music.quarternote.3")
+                        .accessibilityHidden(true)
                     Picker("Play click on", selection: $model.beatsPlayed) {
                         ForEach(BeatsPlayed.allCases) { bp in
                             Text("\(bp.rawValue)").tag(bp)
@@ -288,15 +291,6 @@ extension View {
         self.pickerStyle(WheelPickerStyle())
 #else
         self.pickerStyle(DefaultPickerStyle())
-#endif
-    }
-    
-    @ViewBuilder
-    func tempoNavigationBarTitleForPlatform() -> some View {
-#if os(iOS)
-        self.navigationBarTitle("Enter Tempo", displayMode: .inline)
-#else
-        self
 #endif
     }
 }
