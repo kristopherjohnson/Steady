@@ -69,7 +69,7 @@ class MetronomeViewModel: ObservableObject {
         }
     }
     
-    private let metronomeDispatchQueue = DispatchQueue(label: "net.kristopherjohnson.Steady.metronome", attributes: .concurrent)
+    private let metronomeDispatchQueue = DispatchQueue(label: "net.kristopherjohnson.Steady.metronome", qos: .userInteractive, attributes: .concurrent)
     
     private var metronomeTimer: DispatchSourceTimer?
     
@@ -136,7 +136,7 @@ class MetronomeViewModel: ObservableObject {
 #if os(iOS)
         do {
             let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.playback)
+            try session.setCategory(.playback, options: .mixWithOthers)
             try session.setActive(true)
         } catch {
             print("Failed to set audio session category. Error: \(error)")
