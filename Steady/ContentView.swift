@@ -208,7 +208,7 @@ struct ContentView: View {
                     Image(systemName: "1.square")
                         .accessibilityHidden(true)
                     Toggle("Accent first beat", isOn: $model.accentFirstBeatEnabled)
-                        .accessibilityIdentifier("accessFirstBeatEnabledToggle")
+                        .accessibilityIdentifier("accentFirstBeatEnabledToggle")
                         .accessibilityHint("Play a different sound for the first beat of a measure")
                 }
                 
