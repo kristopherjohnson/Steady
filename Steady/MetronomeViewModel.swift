@@ -73,8 +73,11 @@ class MetronomeViewModel: ObservableObject {
     
     private var metronomeTimer: DispatchSourceTimer?
     
-    private var clickAudioPlayer: AVAudioPlayer?
-    private var accentAudioPlayer: AVAudioPlayer?
+    private var audioEngine: AVAudioEngine?
+    private var clickPlayerNode: AVAudioPlayerNode?
+    private var accentPlayerNode: AVAudioPlayerNode?
+    private var clickBuffer: AVAudioPCMBuffer?
+    private var accentBuffer: AVAudioPCMBuffer?
     
     init() {
         let userDefaults = UserDefaults.standard
@@ -155,11 +158,84 @@ class MetronomeViewModel: ObservableObject {
         }
         
         do {
-            clickAudioPlayer = try AVAudioPlayer(contentsOf: clickUrl)
-            clickAudioPlayer?.prepareToPlay()
+            // Setup audio engine
+            audioEngine = AVAudioEngine()
+            clickPlayerNode = AVAudioPlayerNode()
+            accentPlayerNode = AVAudioPlayerNode()
             
-            accentAudioPlayer = try AVAudioPlayer(contentsOf: accentUrl)
-            accentAudioPlayer?.prepareToPlay()
+            guard let audioEngine = audioEngine,
+                  let clickPlayerNode = clickPlayerNode,
+                  let accentPlayerNode = accentPlayerNode else {
+                fatalError("Failed to create audio engine components")
+            }
+            
+            // Attach nodes to engine
+            audioEngine.attach(clickPlayerNode)
+            audioEngine.attach(accentPlayerNode)
+            
+            // Load audio files into buffers
+            let clickFile = try AVAudioFile(forReading: clickUrl)
+            let accentFile = try AVAudioFile(forReading: accentUrl)
+            
+            // Use a common format for both files and engine
+            let commonFormat = audioEngine.outputNode.outputFormat(forBus: 0)
+            
+            // Connect nodes to mixer with the common format
+            audioEngine.connect(clickPlayerNode, to: audioEngine.mainMixerNode, format: commonFormat)
+            audioEngine.connect(accentPlayerNode, to: audioEngine.mainMixerNode, format: commonFormat)
+            
+            let clickFrameCount = UInt32(clickFile.length)
+            let accentFrameCount = UInt32(accentFile.length)
+            
+            guard let clickBuffer = AVAudioPCMBuffer(pcmFormat: commonFormat, frameCapacity: clickFrameCount),
+                  let accentBuffer = AVAudioPCMBuffer(pcmFormat: commonFormat, frameCapacity: accentFrameCount) else {
+                fatalError("Failed to create audio buffers")
+            }
+            
+            // Convert and read audio files to the common format
+            let clickConverter = AVAudioConverter(from: clickFile.processingFormat, to: commonFormat)
+            let accentConverter = AVAudioConverter(from: accentFile.processingFormat, to: commonFormat)
+            
+            guard let clickConverter = clickConverter,
+                  let accentConverter = accentConverter else {
+                fatalError("Failed to create audio converters")
+            }
+            
+            // Read original files into temporary buffers
+            let clickTempBuffer = AVAudioPCMBuffer(pcmFormat: clickFile.processingFormat, frameCapacity: clickFrameCount)!
+            let accentTempBuffer = AVAudioPCMBuffer(pcmFormat: accentFile.processingFormat, frameCapacity: accentFrameCount)!
+            
+            try clickFile.read(into: clickTempBuffer)
+            try accentFile.read(into: accentTempBuffer)
+            
+            // Convert to common format
+            var error: NSError?
+            let clickInputBlock: AVAudioConverterInputBlock = { inNumPackets, outStatus in
+                outStatus.pointee = .haveData
+                return clickTempBuffer
+            }
+            
+            let accentInputBlock: AVAudioConverterInputBlock = { inNumPackets, outStatus in
+                outStatus.pointee = .haveData
+                return accentTempBuffer
+            }
+            
+            clickConverter.convert(to: clickBuffer, error: &error, withInputFrom: clickInputBlock)
+            if let error = error {
+                fatalError("Failed to convert click audio: \(error)")
+            }
+            
+            accentConverter.convert(to: accentBuffer, error: &error, withInputFrom: accentInputBlock)
+            if let error = error {
+                fatalError("Failed to convert accent audio: \(error)")
+            }
+            
+            self.clickBuffer = clickBuffer
+            self.accentBuffer = accentBuffer
+            
+            // Start audio engine
+            try audioEngine.start()
+            
         } catch {
             fatalError("unable to load click sound: \(error)")
         }
@@ -168,12 +244,27 @@ class MetronomeViewModel: ObservableObject {
     private func playClickSound(beatIndex: Int? = nil) {
         let currentBeatIndex = beatIndex ?? self.beatIndex
         
-        if soundEnabled {
-            if accentFirstBeatEnabled && (currentBeatIndex == 1) {
-                accentAudioPlayer?.play()
-            } else if shouldPlayClick(beatIndex: currentBeatIndex) {
-                clickAudioPlayer?.play()
+        guard soundEnabled else { return }
+        
+        if accentFirstBeatEnabled && (currentBeatIndex == 1) {
+            guard let accentPlayerNode = accentPlayerNode,
+                  let accentBuffer = accentBuffer else { return }
+            
+            if accentPlayerNode.isPlaying {
+                accentPlayerNode.stop()
             }
+            accentPlayerNode.scheduleBuffer(accentBuffer, at: nil, options: [], completionHandler: nil)
+            accentPlayerNode.play()
+            
+        } else if shouldPlayClick(beatIndex: currentBeatIndex) {
+            guard let clickPlayerNode = clickPlayerNode,
+                  let clickBuffer = clickBuffer else { return }
+            
+            if clickPlayerNode.isPlaying {
+                clickPlayerNode.stop()
+            }
+            clickPlayerNode.scheduleBuffer(clickBuffer, at: nil, options: [], completionHandler: nil)
+            clickPlayerNode.play()
         }
     }
     
