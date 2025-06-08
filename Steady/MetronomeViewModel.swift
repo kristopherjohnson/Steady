@@ -125,7 +125,7 @@ class MetronomeViewModel: ObservableObject {
             }
         }
         
-        metronomeTimer?.schedule(deadline: .now(), repeating: interval, leeway: .milliseconds(10))
+        metronomeTimer?.schedule(deadline: .now(), repeating: interval, leeway: .milliseconds(5))
         metronomeTimer?.activate()
     }
     
