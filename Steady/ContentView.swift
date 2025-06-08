@@ -15,6 +15,12 @@ struct ContentView: View {
     private var minBeatsPerMinute: Int { model.minBeatsPerMinute }
     private var maxBeatsPerMinute: Int { model.maxBeatsPerMinute }
     
+    // MARK: - Constants
+    private static let maxTempoDigits = 3
+    private static let maxTapTempoInterval: TimeInterval = 2.0
+    private static let minTapTempoInterval: TimeInterval = 0.2
+    private static let keypadFocusDelay: TimeInterval = 0.6
+    
     var body: some View {
         Form {
             // Title
@@ -92,13 +98,12 @@ struct ContentView: View {
                                         .onChange(of: keypadValue) { _, newValue in
                                             var value = newValue
                                             var valueChanged = false
-                                            if value.count > 3 {
-                                                value = String(newValue.prefix(3))
+                                            if value.count > Self.maxTempoDigits {
+                                                value = String(newValue.prefix(Self.maxTempoDigits))
                                                 valueChanged = true
                                             }
                                             isKeypadValueValid = isValidBeatsPerMinute(text: value)
                                             if valueChanged {
-                                                print("changing keypadValue")
                                                 keypadValue = value
                                             }
                                         }
@@ -114,7 +119,7 @@ struct ContentView: View {
                                     .disabled(!isKeypadValueValid)
                             )
                             .onAppear {
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + Self.keypadFocusDelay) {
                                     isKeypadFocused = true
                                 }
                             }
@@ -237,7 +242,7 @@ struct ContentView: View {
         let now = Date.now
         
         let tapInterval = now.timeIntervalSince(lastTapTempoDate)
-        if tapInterval < 2.0 && tapInterval >= 0.2 {
+        if tapInterval < Self.maxTapTempoInterval && tapInterval >= Self.minTapTempoInterval {
             let newBeatsPerMinute = 60.0 / tapInterval
             model.beatsPerMinute = Int(newBeatsPerMinute.rounded())
         }
