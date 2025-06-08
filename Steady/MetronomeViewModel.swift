@@ -23,8 +23,7 @@ class MetronomeViewModel: ObservableObject {
     @Published var beatsPerMinute: Int {
         didSet {
             assert(beatsPerMinute >= 1)
-            
-            UserDefaults.standard.setValue(beatsPerMinute, forKey: Defaults.beatsPerMinute)
+            saveToUserDefaults(beatsPerMinute, forKey: Defaults.beatsPerMinute)
             
             if isRunning {
                 startTimer()
@@ -43,29 +42,28 @@ class MetronomeViewModel: ObservableObject {
     @Published var beatsPerMeasure: Int {
         didSet {
             assert(beatsPerMeasure >= 2)
-            
-            UserDefaults.standard.setValue(beatsPerMeasure, forKey: Defaults.beatsPerMeasure)
+            saveToUserDefaults(beatsPerMeasure, forKey: Defaults.beatsPerMeasure)
         }
     }
     
     /// If set true, first beat of each measure has a different sound
     @Published var accentFirstBeatEnabled: Bool {
         didSet {
-            UserDefaults.standard.setValue(accentFirstBeatEnabled, forKey: Defaults.accentFirstBeatEnabled)
+            saveToUserDefaults(accentFirstBeatEnabled, forKey: Defaults.accentFirstBeatEnabled)
         }
     }
     
     /// Which beats of a measure to play sounds on
     @Published var beatsPlayed: BeatsPlayed {
         didSet {
-            UserDefaults.standard.setValue(beatsPlayed.rawValue, forKey: Defaults.beatsPlayed)
+            saveToUserDefaults(beatsPlayed.rawValue, forKey: Defaults.beatsPlayed)
         }
     }
     
     /// If true, make audio sounds.  Otherwise, silent.
     @Published var soundEnabled: Bool {
         didSet {
-            UserDefaults.standard.setValue(soundEnabled, forKey: Defaults.soundEnabled)
+            saveToUserDefaults(soundEnabled, forKey: Defaults.soundEnabled)
         }
     }
     
@@ -187,6 +185,13 @@ class MetronomeViewModel: ObservableObject {
             return currentBeatIndex % 2 == 1
         case .even:
             return currentBeatIndex % 2 == 0
+        }
+    }
+    
+    /// Save value to UserDefaults asynchronously to avoid blocking the main thread
+    private func saveToUserDefaults<T>(_ value: T, forKey key: String) {
+        DispatchQueue.global(qos: .utility).async {
+            UserDefaults.standard.setValue(value, forKey: key)
         }
     }
 }
