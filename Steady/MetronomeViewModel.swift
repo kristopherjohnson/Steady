@@ -111,10 +111,7 @@ class MetronomeViewModel: ObservableObject {
                 return
             }
             
-            var nextBeatIndex = self.beatIndex + 1
-            if nextBeatIndex > self.beatsPerMeasure {
-                nextBeatIndex = 1
-            }
+            let nextBeatIndex = (self.beatIndex % self.beatsPerMeasure) + 1
             
             // Play sound immediately on timer thread for precise timing
             self.playClickSound(beatIndex: nextBeatIndex)
