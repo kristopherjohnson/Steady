@@ -147,11 +147,15 @@ class MetronomeViewModel: ObservableObject {
 #endif
         
         guard let clickUrl = Bundle.main.url(forResource: "click_low", withExtension: "wav") else {
-            fatalError("click sound not found.")
+            print("Warning: click_low.wav sound file not found. Audio will be disabled.")
+            soundEnabled = false
+            return
         }
         
         guard let accentUrl = Bundle.main.url(forResource: "click_high", withExtension: "wav") else {
-            fatalError("accent sound not found.")
+            print("Warning: click_high.wav sound file not found. Audio will be disabled.")
+            soundEnabled = false
+            return
         }
         
         do {
@@ -161,7 +165,10 @@ class MetronomeViewModel: ObservableObject {
             accentAudioPlayer = try AVAudioPlayer(contentsOf: accentUrl)
             accentAudioPlayer?.prepareToPlay()
         } catch {
-            fatalError("unable to load click sound: \(error)")
+            print("Warning: unable to load click sounds: \(error). Audio will be disabled.")
+            soundEnabled = false
+            clickAudioPlayer = nil
+            accentAudioPlayer = nil
         }
     }
     
