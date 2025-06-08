@@ -107,18 +107,21 @@ class MetronomeViewModel: ObservableObject {
         metronomeTimer?.setEventHandler { [weak self] in
             guard let self else { return }
             
+            if !self.isRunning {
+                return
+            }
+            
+            var nextBeatIndex = self.beatIndex + 1
+            if nextBeatIndex > self.beatsPerMeasure {
+                nextBeatIndex = 1
+            }
+            
+            // Play sound immediately on timer thread for precise timing
+            self.playClickSound(beatIndex: nextBeatIndex)
+            
+            // Update UI on main thread (non-blocking for audio)
             DispatchQueue.main.async {
-                if !self.isRunning {
-                    return
-                }
-                
-                var nextBeatIndex = self.beatIndex + 1
-                if nextBeatIndex > self.beatsPerMeasure {
-                    nextBeatIndex = 1
-                }
                 self.beatIndex = nextBeatIndex
-
-                self.playClickSound()
             }
         }
         
@@ -162,24 +165,28 @@ class MetronomeViewModel: ObservableObject {
         }
     }
     
-    private func playClickSound() {
+    private func playClickSound(beatIndex: Int? = nil) {
+        let currentBeatIndex = beatIndex ?? self.beatIndex
+        
         if soundEnabled {
-            if accentFirstBeatEnabled && (beatIndex == 1) {
+            if accentFirstBeatEnabled && (currentBeatIndex == 1) {
                 accentAudioPlayer?.play()
-            } else if shouldPlayClick() {
+            } else if shouldPlayClick(beatIndex: currentBeatIndex) {
                 clickAudioPlayer?.play()
             }
         }
     }
     
-    private func shouldPlayClick() -> Bool {
+    private func shouldPlayClick(beatIndex: Int? = nil) -> Bool {
+        let currentBeatIndex = beatIndex ?? self.beatIndex
+        
         switch beatsPlayed {
         case .all:
             return true
         case .odd:
-            return beatIndex % 2 == 1
+            return currentBeatIndex % 2 == 1
         case .even:
-            return beatIndex % 2 == 0
+            return currentBeatIndex % 2 == 0
         }
     }
 }
