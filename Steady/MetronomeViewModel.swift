@@ -107,7 +107,9 @@ class MetronomeViewModel: ObservableObject {
         metronomeTimer?.setEventHandler { [weak self] in
             guard let self else { return }
             
-            if !self.isRunning {
+            // Capture isRunning state atomically to avoid race conditions
+            let shouldContinue = self.isRunning
+            if !shouldContinue {
                 return
             }
             
@@ -120,8 +122,12 @@ class MetronomeViewModel: ObservableObject {
             self.playClickSound(beatIndex: nextBeatIndex)
             
             // Update UI on main thread (non-blocking for audio)
-            DispatchQueue.main.async {
-                self.beatIndex = nextBeatIndex
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                // Double-check isRunning state before updating UI
+                if self.isRunning {
+                    self.beatIndex = nextBeatIndex
+                }
             }
         }
         
