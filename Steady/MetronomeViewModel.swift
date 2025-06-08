@@ -225,6 +225,7 @@ class MetronomeViewModel: ObservableObject {
                 fatalError("Failed to convert click audio: \(error)")
             }
             
+            error = nil
             accentConverter.convert(to: accentBuffer, error: &error, withInputFrom: accentInputBlock)
             if let error = error {
                 fatalError("Failed to convert accent audio: \(error)")
