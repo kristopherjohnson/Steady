@@ -1,3 +1,6 @@
 .DS_Store
 xcuserdata
 *.xcbkptlist
+.claude
+PLAN.md
+CONVERSATION.md
