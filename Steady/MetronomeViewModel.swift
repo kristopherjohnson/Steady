@@ -1,6 +1,7 @@
 import Foundation
 import AVFoundation
 import Combine
+import UIKit
 
 /// Implementation of metronome state and operation for use by ContentView.
 class MetronomeViewModel: ObservableObject {
@@ -12,9 +13,9 @@ class MetronomeViewModel: ObservableObject {
     @Published var isRunning = false {
         didSet {
             if isRunning {
-                startTimer()
+                startMetronome()
             } else {
-                stopTimer()
+                stopMetronome()
             }
         }
     }
@@ -27,7 +28,7 @@ class MetronomeViewModel: ObservableObject {
             UserDefaults.standard.setValue(beatsPerMinute, forKey: Defaults.beatsPerMinute)
             
             if isRunning {
-                startTimer()
+                startMetronome()
             }
         }
     }
@@ -69,12 +70,25 @@ class MetronomeViewModel: ObservableObject {
         }
     }
     
+    // Unified audio system using AVAudioEngine
+    private var audioEngine: AVAudioEngine?
+    private var playerNode: AVAudioPlayerNode?
+    private var mixer: AVAudioMixerNode?
+    private var highClickBuffer: AVAudioPCMBuffer?
+    private var lowClickBuffer: AVAudioPCMBuffer?
+    private var silentBuffer: AVAudioPCMBuffer?
     private let metronomeDispatchQueue = DispatchQueue(label: "net.kristopherjohnson.Steady.metronome", qos: .userInteractive, attributes: .concurrent)
     
+    // UI timing (independent of audio timing)
+    private var uiTimer: DispatchSourceTimer?
+    private let uiQueue = DispatchQueue(label: "net.kristopherjohnson.Steady.ui", qos: .userInteractive)
+    
+    // Traditional timing for compatibility
     private var metronomeTimer: DispatchSourceTimer?
     
-    private var clickAudioPlayer: AVAudioPlayer?
-    private var accentAudioPlayer: AVAudioPlayer?
+    // Audio timing state
+    private var currentBeat = 0
+    private var nextBeatTime: AVAudioTime?
     
     init() {
         let userDefaults = UserDefaults.standard
@@ -91,102 +105,240 @@ class MetronomeViewModel: ObservableObject {
         beatsPlayed = BeatsPlayed(rawValue: userDefaults.string(forKey: Defaults.beatsPlayed) ?? BeatsPlayed.all.rawValue) ?? .all
         soundEnabled = userDefaults.bool(forKey: Defaults.soundEnabled)
         
-        loadSounds()
+        setupAudio()
     }
     
-    private func startTimer() {
-        stopTimer()
-        
-        beatIndex = 0
-        let interval = 60.0 / Double(beatsPerMinute)
-        
-        metronomeTimer = DispatchSource.makeTimerSource(
-            flags: .strict,
-            queue: metronomeDispatchQueue)
-        
-        metronomeTimer?.setEventHandler { [weak self] in
-            guard let self else { return }
-            
-            if !self.isRunning {
-                return
-            }
-            
-            var nextBeatIndex = self.beatIndex + 1
-            if nextBeatIndex > self.beatsPerMeasure {
-                nextBeatIndex = 1
-            }
-            
-            // Play sound immediately on timer thread for precise timing
-            self.playClickSound(beatIndex: nextBeatIndex)
-            
-            // Update UI on main thread (non-blocking for audio)
-            DispatchQueue.main.async {
-                self.beatIndex = nextBeatIndex
-            }
-        }
-        
-        metronomeTimer?.schedule(deadline: .now(), repeating: interval, leeway: .milliseconds(5))
-        metronomeTimer?.activate()
+    private func setupAudio() {
+        setupAudioSession()
+        setupAudioEngine()
+        loadAudioBuffers()
     }
     
-    private func stopTimer() {
-        beatIndex = 0
-        metronomeTimer?.cancel()
-        metronomeTimer = nil
-    }
-    
-    private func loadSounds() {
+    private func setupAudioSession() {
 #if os(iOS)
         do {
             let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.playback, options: .mixWithOthers)
-            try session.setActive(true)
+            try session.setCategory(.playback, 
+                                   mode: .default, 
+                                   options: [.mixWithOthers, .allowAirPlay, .allowBluetooth])
+            try session.setActive(true, options: .notifyOthersOnDeactivation)
         } catch {
             print("Failed to set audio session category. Error: \(error)")
         }
 #endif
+    }
+    
+    private func setupAudioEngine() {
+        audioEngine = AVAudioEngine()
+        playerNode = AVAudioPlayerNode()
+        mixer = audioEngine?.mainMixerNode
         
-        guard let clickUrl = Bundle.main.url(forResource: "click_low", withExtension: "wav") else {
-            fatalError("click sound not found.")
-        }
+        guard let engine = audioEngine, let player = playerNode else { return }
         
-        guard let accentUrl = Bundle.main.url(forResource: "click_high", withExtension: "wav") else {
-            fatalError("accent sound not found.")
-        }
+        engine.attach(player)
+        engine.connect(player, to: mixer!, format: nil)
         
         do {
-            clickAudioPlayer = try AVAudioPlayer(contentsOf: clickUrl)
-            clickAudioPlayer?.prepareToPlay()
-            
-            accentAudioPlayer = try AVAudioPlayer(contentsOf: accentUrl)
-            accentAudioPlayer?.prepareToPlay()
+            try engine.start()
         } catch {
-            fatalError("unable to load click sound: \(error)")
+            print("Failed to start audio engine: \(error)")
         }
     }
     
-    private func playClickSound(beatIndex: Int? = nil) {
-        let currentBeatIndex = beatIndex ?? self.beatIndex
+    private func loadAudioBuffers() {
+        guard let highClickURL = Bundle.main.url(forResource: "click_high", withExtension: "wav"),
+              let lowClickURL = Bundle.main.url(forResource: "click_low", withExtension: "wav") else {
+            print("Could not find audio files")
+            return
+        }
         
-        if soundEnabled {
-            if accentFirstBeatEnabled && (currentBeatIndex == 1) {
-                accentAudioPlayer?.play()
-            } else if shouldPlayClick(beatIndex: currentBeatIndex) {
-                clickAudioPlayer?.play()
+        do {
+            let highClickFile = try AVAudioFile(forReading: highClickURL)
+            let lowClickFile = try AVAudioFile(forReading: lowClickURL)
+            
+            let highFrameCount = UInt32(highClickFile.length)
+            let lowFrameCount = UInt32(lowClickFile.length)
+            
+            guard let highBuffer = AVAudioPCMBuffer(pcmFormat: highClickFile.processingFormat, frameCapacity: highFrameCount),
+                  let lowBuffer = AVAudioPCMBuffer(pcmFormat: lowClickFile.processingFormat, frameCapacity: lowFrameCount) else {
+                print("Could not create audio buffers")
+                return
+            }
+            
+            try highClickFile.read(into: highBuffer)
+            try lowClickFile.read(into: lowBuffer)
+            
+            highClickBuffer = highBuffer
+            lowClickBuffer = lowBuffer
+            
+            createSilentBuffer()
+            
+        } catch {
+            print("Error loading audio files: \(error)")
+        }
+    }
+    
+    private func createSilentBuffer() {
+        guard let engine = audioEngine else { return }
+        
+        let format = engine.mainMixerNode.outputFormat(forBus: 0)
+        let frameCount = UInt32(format.sampleRate * 0.1) // 100ms of silence
+        
+        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount) else { return }
+        
+        buffer.frameLength = frameCount
+        
+        // Initialize with silence
+        if let floatData = buffer.floatChannelData {
+            for channel in 0..<Int(format.channelCount) {
+                for frame in 0..<Int(frameCount) {
+                    floatData[channel][frame] = 0.0
+                }
+            }
+        }
+        
+        silentBuffer = buffer
+    }
+    
+    private func startMetronome() {
+        stopMetronome()
+        
+        guard let engine = audioEngine, let player = playerNode else { return }
+        
+        // Reset timing state
+        currentBeat = 0
+        beatIndex = 0
+        
+        // Ensure audio engine is running
+        if !engine.isRunning {
+            do {
+                try engine.start()
+            } catch {
+                print("Failed to start audio engine: \(error)")
+                return
+            }
+        }
+        
+        // Start audio timing
+        scheduleNextBeat()
+        scheduleSilentAudio() // Keep audio session active in background
+        
+        // Start UI updates
+        startUITimer()
+    }
+    
+    private func stopMetronome() {
+        // Stop audio
+        playerNode?.stop()
+        nextBeatTime = nil
+        
+        // Stop UI timer
+        uiTimer?.cancel()
+        uiTimer = nil
+        
+        // Reset UI state
+        beatIndex = 0
+        currentBeat = 0
+    }
+    
+    private func scheduleNextBeat() {
+        guard isRunning, let player = playerNode, let engine = audioEngine else { return }
+        
+        let interval = 60.0 / Double(beatsPerMinute)
+        let sampleRate = engine.outputNode.outputFormat(forBus: 0).sampleRate
+        
+        // Calculate next beat time
+        if let lastTime = nextBeatTime {
+            let framesToAdd = AVAudioFramePosition(interval * sampleRate)
+            nextBeatTime = AVAudioTime(sampleTime: lastTime.sampleTime + framesToAdd, atRate: sampleRate)
+        } else {
+            // First beat - schedule immediately
+            let currentTime = engine.outputNode.lastRenderTime ?? AVAudioTime(sampleTime: 0, atRate: sampleRate)
+            let bufferDelay = AVAudioFramePosition(0.1 * sampleRate) // 100ms buffer
+            nextBeatTime = AVAudioTime(sampleTime: currentTime.sampleTime + bufferDelay, atRate: sampleRate)
+        }
+        
+        guard let playTime = nextBeatTime else { return }
+        
+        // Schedule the click if sound is enabled and this beat should play
+        if soundEnabled && shouldPlayBeat() {
+            let isAccented = accentFirstBeatEnabled && (currentBeat % beatsPerMeasure == 0)
+            let buffer = isAccented ? highClickBuffer : lowClickBuffer
+            
+            if let buffer = buffer {
+                player.scheduleBuffer(buffer, at: playTime) { [weak self] in
+                    DispatchQueue.main.async {
+                        self?.advanceBeat()
+                        self?.scheduleNextBeat()
+                    }
+                }
+            } else {
+                // No buffer available, schedule next beat anyway
+                DispatchQueue.main.asyncAfter(deadline: .now() + interval) { [weak self] in
+                    self?.advanceBeat()
+                    self?.scheduleNextBeat()
+                }
+            }
+        } else {
+            // Silent beat, schedule next beat
+            DispatchQueue.main.asyncAfter(deadline: .now() + interval) { [weak self] in
+                self?.advanceBeat()
+                self?.scheduleNextBeat()
             }
         }
     }
     
-    private func shouldPlayClick(beatIndex: Int? = nil) -> Bool {
-        let currentBeatIndex = beatIndex ?? self.beatIndex
+    private func shouldPlayBeat() -> Bool {
+        let beatInMeasure = currentBeat % beatsPerMeasure
         
         switch beatsPlayed {
         case .all:
             return true
         case .odd:
-            return currentBeatIndex % 2 == 1
+            return beatInMeasure % 2 == 0
         case .even:
-            return currentBeatIndex % 2 == 0
+            return beatInMeasure % 2 == 1
         }
+    }
+    
+    private func advanceBeat() {
+        currentBeat += 1
+    }
+    
+    private func scheduleSilentAudio() {
+        // Schedule continuous silent audio to keep the session active in background
+        guard let player = playerNode, let silentBuffer = silentBuffer else { return }
+        
+        player.scheduleBuffer(silentBuffer, at: nil) { [weak self] in
+            if self?.isRunning == true {
+                self?.scheduleSilentAudio()
+            }
+        }
+    }
+    
+    private func startUITimer() {
+        let interval = 60.0 / Double(beatsPerMinute)
+        
+        uiTimer = DispatchSource.makeTimerSource(flags: .strict, queue: uiQueue)
+        
+        uiTimer?.setEventHandler { [weak self] in
+            DispatchQueue.main.async {
+                guard let self = self, self.isRunning else { return }
+                
+                var nextBeatIndex = self.beatIndex + 1
+                if nextBeatIndex > self.beatsPerMeasure {
+                    nextBeatIndex = 1
+                }
+                self.beatIndex = nextBeatIndex
+            }
+        }
+        
+        uiTimer?.schedule(deadline: .now(), repeating: interval, leeway: .milliseconds(10))
+        uiTimer?.activate()
+    }
+    
+    deinit {
+        stopMetronome()
+        audioEngine?.stop()
     }
 }
