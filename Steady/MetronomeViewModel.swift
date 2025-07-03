@@ -77,10 +77,14 @@ class MetronomeViewModel: ObservableObject {
     private var highClickBuffer: AVAudioPCMBuffer?
     private var lowClickBuffer: AVAudioPCMBuffer?
     private var silentBuffer: AVAudioPCMBuffer?
+    private let metronomeDispatchQueue = DispatchQueue(label: "net.kristopherjohnson.Steady.metronome", qos: .userInteractive, attributes: .concurrent)
     
     // UI timing (independent of audio timing)
     private var uiTimer: DispatchSourceTimer?
     private let uiQueue = DispatchQueue(label: "net.kristopherjohnson.Steady.ui", qos: .userInteractive)
+    
+    // Traditional timing for compatibility
+    private var metronomeTimer: DispatchSourceTimer?
     
     // Audio timing state
     private var currentBeat = 0

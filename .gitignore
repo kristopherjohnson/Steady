@@ -1,6 +1,6 @@
 .DS_Store
 xcuserdata
 *.xcbkptlist
-.claude
+.claude/
 PLAN.md
 CONVERSATION.md
